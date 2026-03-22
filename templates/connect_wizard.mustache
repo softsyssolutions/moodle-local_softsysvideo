@@ -130,8 +130,9 @@
   }
 
   function post(action, extra, sesskey) {
+    // Send action in POST body (not URL query string) to avoid Moodle Slim router 404
     const params = new URLSearchParams({ action, sesskey, ...extra });
-    return fetch(connectUrl + '?action=' + action, {
+    return fetch(connectUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params,

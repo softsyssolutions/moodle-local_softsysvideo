@@ -22,7 +22,15 @@ $PAGE->set_url(new moodle_url('/local/softsysvideo/connect.php'));
 $PAGE->set_title(get_string('setup_wizard', 'local_softsysvideo'));
 $PAGE->set_heading(get_string('setup_wizard', 'local_softsysvideo'));
 
-$action = optional_param('action', '', PARAM_ALPHA);
+// Read action from POST body or GET param
+// Note: Moodle 4.5+ Slim router may block ?action= in query string for POST requests,
+// so we read from $_POST first, then fall back to GET.
+$action = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
+    $action = clean_param($_POST['action'], PARAM_ALPHA);
+} else {
+    $action = optional_param('action', '', PARAM_ALPHA);
+}
 
 // ── AJAX: connect ─────────────────────────────────────────────────────────────
 if ($action === 'connect') {
