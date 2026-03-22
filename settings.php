@@ -6,105 +6,80 @@ if ($hassiteconfig) {
 
     if ($ADMIN->fulltree) {
 
-        // ── SECCIÓN 1: Estado de conexión ─────────────────────────────────────
-        $apiurl    = get_config('local_softsysvideo', 'softsysvideo_api_url');
-        $pluginkey = get_config('local_softsysvideo', 'softsysvideo_plugin_key');
+        // ── SECCIÓN 1: Estado de conexión (sin llamadas HTTP — solo config local) ──
+        $apiurl      = get_config('local_softsysvideo', 'softsysvideo_api_url');
+        $pluginkey   = get_config('local_softsysvideo', 'softsysvideo_plugin_key');
         $isconnected = !empty($apiurl) && !empty($pluginkey);
 
+        // Leer caché de créditos/uso si existen
+        $cachedcredits = get_config('local_softsysvideo', 'cache_credit_balance');
+        $cachedtenant  = get_config('local_softsysvideo', 'cache_tenant_name');
+        $cachedusage   = get_config('local_softsysvideo', 'cache_usage_summary');
+        $cachedat      = get_config('local_softsysvideo', 'cache_updated_at');
+
+        $wwwroot = $CFG->wwwroot;
+
         if ($isconnected) {
-            // Intentar obtener créditos y uso del API
-            $creditshtml = '';
-            $usagehtml   = '';
-            $bbbstatus   = '';
+            $connhtml = '<div class="p-3 mb-3 bg-light rounded border">';
+            $connhtml .= '<h5 class="mb-2">🟢 ' . get_string('connected', 'local_softsysvideo')
+                . ' <small class="text-muted fs-6 ms-2">' . htmlspecialchars($apiurl) . '</small></h5>';
 
-            try {
-                require_once($CFG->dirroot . '/local/softsysvideo/classes/api_client.php');
-                $client  = new \local_softsysvideo\api_client($apiurl, $pluginkey);
-                $credits = $client->get_credits();
-                $usage   = $client->get_usage();
-
-                if (!empty($credits)) {
-                    $balance  = number_format(floatval($credits['balance'] ?? 0), 2);
-                    $tname    = htmlspecialchars($credits['tenant_name'] ?? '');
-                    $creditshtml = html_writer::div(
-                        html_writer::tag('strong', get_string('credits_balance', 'local_softsysvideo') . ': ') .
-                        html_writer::tag('span', '$' . $balance . ' USD',
-                            ['class' => floatval($credits['balance'] ?? 0) < 5 ? 'text-danger fw-bold' : 'text-success fw-bold']) .
-                        ($tname ? html_writer::tag('span', ' · ' . $tname, ['class' => 'text-muted ms-2']) : ''),
-                        'alert alert-info py-2 px-3 mb-1'
-                    );
-                }
-
-                if (!empty($usage)) {
-                    $meetings  = $usage['meetings']['total'] ?? 0;
-                    $active    = $usage['meetings']['active_now'] ?? 0;
-                    $minutes   = $usage['meetings']['total_minutes'] ?? 0;
-                    $cost      = number_format(floatval($usage['cost_usd']['total'] ?? 0), 2);
-                    $period    = $usage['period_days'] ?? 30;
-                    $usagehtml = html_writer::div(
-                        html_writer::tag('strong', get_string('monthly_usage', 'local_softsysvideo') . ' (' . $period . ' días): ') .
-                        "$meetings reuniones · {$minutes} min · $active activas · \${$cost} USD consumidos",
-                        'alert alert-secondary py-2 px-3 mb-1'
-                    );
-                }
-            } catch (\Exception $e) {
-                $creditshtml = html_writer::div(
-                    get_string('connection_failed', 'local_softsysvideo') . ': ' . htmlspecialchars($e->getMessage()),
-                    'alert alert-warning py-2 px-3 mb-1'
-                );
+            // Mostrar datos cacheados si existen
+            if ($cachedcredits !== false) {
+                $balance = number_format(floatval($cachedcredits), 2);
+                $alertcl = floatval($cachedcredits) < 5 ? 'alert-danger' : 'alert-success';
+                $connhtml .= '<div class="alert ' . $alertcl . ' py-2 px-3 mb-1">'
+                    . '<strong>💰 ' . get_string('credits_balance', 'local_softsysvideo') . ':</strong> $'
+                    . $balance . ' USD'
+                    . ($cachedtenant ? ' <span class="text-muted">· ' . htmlspecialchars($cachedtenant) . '</span>' : '')
+                    . '</div>';
+            }
+            if ($cachedusage) {
+                $connhtml .= '<div class="alert alert-secondary py-2 px-3 mb-1">'
+                    . '<strong>📊 ' . get_string('monthly_usage', 'local_softsysvideo') . ':</strong> '
+                    . htmlspecialchars($cachedusage) . '</div>';
             }
 
-            // Estado de configuración de BBB
-            require_once($CFG->dirroot . '/local/softsysvideo/classes/bbb_configurator.php');
-            $configurator = new \local_softsysvideo\bbb_configurator();
-            if ($configurator->is_bbb_installed()) {
-                $bbbcfg = $configurator->get_current_bbb_config();
-                $pointingToUs = $configurator->is_configured_for_softsysvideo($apiurl);
-                $bbbstatus = html_writer::div(
-                    html_writer::tag('strong', 'BigBlueButton: ') .
-                    ($pointingToUs
-                        ? html_writer::tag('span', '✅ Configurado para SoftSys Video', ['class' => 'text-success'])
-                        : html_writer::tag('span', '⚠️ Apuntando a otro servidor: ' . htmlspecialchars($bbbcfg['server_url']), ['class' => 'text-warning'])),
-                    'alert alert-light border py-2 px-3 mb-1'
-                );
-            } else {
-                $bbbstatus = html_writer::div(
-                    '⚠️ ' . get_string('bbb_not_installed', 'local_softsysvideo'),
-                    'alert alert-warning py-2 px-3 mb-1'
-                );
+            // Estado BBB desde config local (sin HTTP)
+            $bbburl = get_config('bigbluebutton', 'server_url');
+            if ($bbburl) {
+                $pointing = !empty($apiurl) && (strpos($bbburl, parse_url($apiurl, PHP_URL_HOST)) !== false);
+                $connhtml .= '<div class="alert alert-light border py-2 px-3 mb-1">'
+                    . '🔗 <strong>BigBlueButton:</strong> '
+                    . ($pointing
+                        ? '<span class="text-success">✅ Configurado para SoftSys Video</span>'
+                        : '⚠️ Apuntando a: ' . htmlspecialchars($bbburl)
+                        . ' — <a href="' . $wwwroot . '/local/softsysvideo/setup.php">Configurar ahora</a>')
+                    . '</div>';
             }
 
-            $statusblock = html_writer::div(
-                html_writer::tag('h5', '🟢 ' . get_string('connected', 'local_softsysvideo') .
-                    html_writer::tag('small', ' · ' . htmlspecialchars($apiurl), ['class' => 'text-muted fs-6 ms-2']), ['class' => 'mb-2']) .
-                $creditshtml .
-                $usagehtml .
-                $bbbstatus,
-                'p-3 mb-3 bg-light rounded border'
-            );
+            $connhtml .= '<div class="mt-2">'
+                . '<a href="' . $wwwroot . '/local/softsysvideo/setup.php" class="btn btn-sm btn-outline-primary">'
+                . '🔄 Actualizar datos</a>'
+                . ($cachedat ? '<small class="text-muted ms-2">Última sync: ' . userdate($cachedat, '%d/%m %H:%M') . '</small>' : '')
+                . '</div>';
+
+            $connhtml .= '</div>';
         } else {
-            $statusblock = html_writer::div(
-                '🔴 ' . get_string('not_connected', 'local_softsysvideo') .
-                ' — ' . html_writer::link(
-                    new moodle_url('/local/softsysvideo/setup.php'),
-                    get_string('setup_wizard', 'local_softsysvideo'),
-                    ['class' => 'btn btn-sm btn-primary ms-2']
-                ),
-                'alert alert-secondary'
-            );
+            $connhtml = '<div class="alert alert-secondary">'
+                . '🔴 ' . get_string('not_connected', 'local_softsysvideo')
+                . ' — <a href="' . $wwwroot . '/local/softsysvideo/setup.php" class="btn btn-sm btn-primary ms-2">'
+                . '⚙️ ' . get_string('setup_wizard', 'local_softsysvideo') . '</a>'
+                . '</div>';
         }
 
         $settings->add(new admin_setting_heading(
             'local_softsysvideo/connectionstatus',
-            get_string('connected', 'local_softsysvideo'),
-            $statusblock
+            'Estado de conexión',
+            $connhtml
         ));
 
         // ── SECCIÓN 2: Credenciales ───────────────────────────────────────────
         $settings->add(new admin_setting_heading(
             'local_softsysvideo/credentialshdr',
             'Credenciales de API',
-            get_string('api_url_help', 'local_softsysvideo')
+            'Genera el Plugin API Key en <a href="https://app.softsysvideo.com" target="_blank">app.softsysvideo.com</a>'
+            . ' → Configuración → Integración Moodle.'
         ));
 
         $settings->add(new admin_setting_configtext(
@@ -125,46 +100,24 @@ if ($hassiteconfig) {
         $settings->add(new admin_setting_configpasswordunmask(
             'local_softsysvideo/softsysvideo_shared_secret',
             get_string('shared_secret', 'local_softsysvideo'),
-            'Secreto compartido BBB. Se usa para configurar mod_bigbluebutton.',
+            'Secreto compartido BBB-compatible para configurar mod_bigbluebutton.',
             ''
         ));
 
-        // ── SECCIÓN 3: Setup Wizard ───────────────────────────────────────────
-        $setupbtn = html_writer::div(
-            html_writer::link(
-                new moodle_url('/local/softsysvideo/setup.php'),
-                '⚙️ ' . get_string('setup_wizard', 'local_softsysvideo'),
-                ['class' => 'btn btn-primary me-2']
-            ) .
-            html_writer::link(
-                new moodle_url('/local/softsysvideo/setup.php', ['action' => 'configure']),
-                '🔗 ' . get_string('configure_bbb', 'local_softsysvideo'),
-                ['class' => 'btn btn-outline-secondary']
-            ),
-            'mt-2'
-        );
+        // ── SECCIÓN 3: Setup Wizard & Acciones ───────────────────────────────
+        $actionbtns = '<div class="d-flex flex-wrap gap-2 mt-2">'
+            . '<a href="' . $wwwroot . '/local/softsysvideo/setup.php" class="btn btn-primary">'
+            . '⚙️ ' . get_string('setup_wizard', 'local_softsysvideo') . '</a>'
+            . '<a href="' . $wwwroot . '/local/softsysvideo/setup.php?action=configure&sesskey=' . sesskey() . '" class="btn btn-outline-secondary">'
+            . '🔗 ' . get_string('configure_bbb', 'local_softsysvideo') . '</a>'
+            . '<a href="' . $wwwroot . '/local/softsysvideo/support.php" class="btn btn-outline-danger">'
+            . '🆘 Reportar problema</a>'
+            . '</div>';
 
         $settings->add(new admin_setting_heading(
-            'local_softsysvideo/setupwizardhdr',
-            get_string('setup_wizard', 'local_softsysvideo'),
-            get_string('setup_wizard', 'local_softsysvideo') . ': conecta y configura BigBlueButton automáticamente.' .
-            $setupbtn
-        ));
-
-        // ── SECCIÓN 4: Soporte integrado ──────────────────────────────────────
-        $supportbtn = html_writer::div(
-            html_writer::link(
-                new moodle_url('/local/softsysvideo/support.php'),
-                '🆘 Reportar problema a SoftSys',
-                ['class' => 'btn btn-outline-danger btn-sm']
-            ),
-            'mt-1'
-        );
-
-        $settings->add(new admin_setting_heading(
-            'local_softsysvideo/supporthdr',
-            'Soporte',
-            'Reporta problemas directamente al equipo de SoftSys Video.' . $supportbtn
+            'local_softsysvideo/actionshdr',
+            'Acciones',
+            'Configura la integración, actualiza credenciales y reporta problemas.' . $actionbtns
         ));
     }
 
