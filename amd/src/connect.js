@@ -1,4 +1,3 @@
-<?php
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,18 +14,27 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Plugin version definition.
+ * Connect AMD module for local_softsysvideo.
  *
- * @package    local_softsysvideo
+ * @module     local_softsysvideo/connect
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component = 'local_softsysvideo';
-$plugin->version   = 2026032202;
-$plugin->requires  = 2022041200; // Moodle 4.1+
-$plugin->maturity  = MATURITY_ALPHA;
-$plugin->release   = '0.2.0';
-$plugin->supported = [[401, 405]]; // Moodle 4.1-4.5
+define([], function() {
+    return {
+        init: function(connectEndpoint, wwwroot) {
+            var form = document.getElementById('ssv-connect-form');
+            if (!form) {
+                return;
+            }
+            form.addEventListener('submit', function() {
+                // Form submits normally via POST — no need to intercept.
+                // This module handles UI enhancements only.
+                var btn = document.getElementById('ssv-connect-btn');
+                if (btn) {
+                    btn.disabled = true;
+                }
+            });
+        }
+    };
+});

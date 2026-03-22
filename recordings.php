@@ -1,4 +1,27 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Recordings page for the SoftSys Video companion plugin.
+ *
+ * @package    local_softsysvideo
+ * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 require_once('../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
@@ -11,9 +34,13 @@ $PAGE->set_title(get_string('recordings', 'local_softsysvideo'));
 $PAGE->set_heading(get_string('pluginname', 'local_softsysvideo'));
 $PAGE->set_pagelayout('admin');
 
-$isConnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
-$apiUrl      = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: 'https://api.softsysvideo.com';
-$pluginKey   = get_config('local_softsysvideo', 'softsysvideo_plugin_key') ?: '';
+$isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
+$apiurl      = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: 'https://api.softsysvideo.com';
+$pluginkey   = get_config('local_softsysvideo', 'softsysvideo_plugin_key') ?: '';
+
+if ($isconnected) {
+    $PAGE->requires->js_call_amd('local_softsysvideo/recordings', 'init', [$apiurl, $pluginkey]);
+}
 
 echo $OUTPUT->header();
 ?>
@@ -22,35 +49,40 @@ echo $OUTPUT->header();
 
   <!-- Plugin nav -->
   <div class="d-flex gap-2 mb-3 flex-wrap">
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/dashboard.php" class="btn btn-sm btn-outline-primary">📊 Dashboard</a>
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/recordings.php" class="btn btn-sm btn-secondary">🎬 Grabaciones</a>
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/meetings.php" class="btn btn-sm btn-outline-secondary">📅 Reuniones</a>
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/connect.php" class="btn btn-sm btn-outline-secondary">🔌 Conexión</a>
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/support.php" class="btn btn-sm btn-outline-danger">🆘 Soporte</a>
+    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/dashboard.php" class="btn btn-sm btn-outline-primary"><?php echo get_string('dashboard', 'local_softsysvideo'); ?></a>
+    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/recordings.php" class="btn btn-sm btn-secondary"><?php echo get_string('recordings', 'local_softsysvideo'); ?></a>
+    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/meetings.php" class="btn btn-sm btn-outline-secondary"><?php echo get_string('meetings', 'local_softsysvideo'); ?></a>
+    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/connect.php" class="btn btn-sm btn-outline-secondary"><?php echo get_string('connection', 'local_softsysvideo'); ?></a>
+    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/support.php" class="btn btn-sm btn-outline-danger"><?php echo get_string('support', 'local_softsysvideo'); ?></a>
   </div>
 
-  <h2>🎬 Grabaciones</h2>
+  <h2><?php echo get_string('recordings', 'local_softsysvideo'); ?></h2>
 
-  <?php if (!$isConnected): ?>
-    <div class="alert alert-warning">
-      ⚠️ No conectado. <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/connect.php" class="alert-link">Conectar con SoftSys Video →</a>
-    </div>
+  <?php if (!$isconnected): ?>
+    <?php echo $OUTPUT->notification(
+        get_string('not_connected', 'local_softsysvideo') . ' ' .
+        html_writer::link(
+            new moodle_url('/local/softsysvideo/connect.php'),
+            get_string('connect_account', 'local_softsysvideo')
+        ),
+        \core\output\notification::NOTIFY_WARNING
+    ); ?>
   <?php else: ?>
 
     <div id="ssv-recordings-loading" class="text-muted">Cargando grabaciones...</div>
-    <div id="ssv-recordings-error" class="alert alert-danger d-none">Error cargando grabaciones.</div>
+    <div id="ssv-recordings-error" class="alert alert-danger d-none"><?php echo get_string('request_failed', 'local_softsysvideo'); ?></div>
 
     <div id="ssv-recordings-container" class="d-none">
       <div class="table-responsive">
         <table class="table table-striped table-hover">
           <thead class="table-dark">
             <tr>
-              <th>Nombre</th>
-              <th>Reunión</th>
-              <th>Fecha</th>
-              <th>Duración</th>
-              <th>Tamaño</th>
-              <th>Acción</th>
+              <th><?php echo get_string('recording_name', 'local_softsysvideo'); ?></th>
+              <th><?php echo get_string('meeting', 'local_softsysvideo'); ?></th>
+              <th><?php echo get_string('date', 'local_softsysvideo'); ?></th>
+              <th><?php echo get_string('duration', 'local_softsysvideo'); ?></th>
+              <th><?php echo get_string('size', 'local_softsysvideo'); ?></th>
+              <th><?php echo get_string('play', 'local_softsysvideo'); ?></th>
             </tr>
           </thead>
           <tbody id="ssv-recordings-tbody">
@@ -62,50 +94,6 @@ echo $OUTPUT->header();
 
   <?php endif; ?>
 </div>
-
-<script>
-(function() {
-    var API_URL    = <?php echo json_encode($apiUrl); ?>;
-    var PLUGIN_KEY = <?php echo json_encode($pluginKey); ?>;
-    if (!PLUGIN_KEY) return;
-
-    fetch(API_URL + '/api/moodle/recordings', {
-        headers: { 'Authorization': 'Bearer ' + PLUGIN_KEY }
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        document.getElementById('ssv-recordings-loading').classList.add('d-none');
-        var recordings = data.recordings || data || [];
-        if (!Array.isArray(recordings)) recordings = [];
-
-        var tbody = document.getElementById('ssv-recordings-tbody');
-        if (recordings.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No hay grabaciones disponibles.</td></tr>';
-        } else {
-            recordings.forEach(function(rec) {
-                var playBtn = rec.url
-                    ? '<a href="' + rec.url + '" target="_blank" class="btn btn-sm btn-success">▶ Reproducir</a>'
-                    : '<span class="text-muted">—</span>';
-                var row = '<tr>'
-                    + '<td>' + (rec.name || '—') + '</td>'
-                    + '<td>' + (rec.meeting_name || rec.meeting || '—') + '</td>'
-                    + '<td>' + (rec.date || rec.created_at || '—') + '</td>'
-                    + '<td>' + (rec.duration || '—') + '</td>'
-                    + '<td>' + (rec.size || '—') + '</td>'
-                    + '<td>' + playBtn + '</td>'
-                    + '</tr>';
-                tbody.innerHTML += row;
-            });
-        }
-        document.getElementById('ssv-recordings-count').textContent = recordings.length + ' grabación(es) encontrada(s).';
-        document.getElementById('ssv-recordings-container').classList.remove('d-none');
-    })
-    .catch(function() {
-        document.getElementById('ssv-recordings-loading').classList.add('d-none');
-        document.getElementById('ssv-recordings-error').classList.remove('d-none');
-    });
-})();
-</script>
 
 <?php
 echo $OUTPUT->footer();
