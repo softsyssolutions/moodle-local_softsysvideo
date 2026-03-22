@@ -65,24 +65,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                 ? $overrideEndpoint
                 : 'https://api.softsysvideo.com/api/moodle/connect';
 
-            // Ensure Moodle curl class is loaded
-            require_once($CFG->libdir . '/filelib.php');
-
-            // Call POST /api/moodle/connect using Moodle's curl wrapper
-            $curl = new \curl();
-            $curl->setHeader(['Content-Type: application/json', 'Accept: application/json']);
-            $response = $curl->post($connectEndpoint, json_encode([
+            // Call POST /api/moodle/connect using PHP curl directly
+            $payload = json_encode([
                 'email'      => $email,
                 'password'   => $password,
                 'moodle_url' => $moodleUrl,
                 'label'      => 'Moodle: ' . $moodleUrl,
-            ]));
+            ]);
 
-            $info     = $curl->get_info();
-            $httpCode = $info['http_code'] ?? 0;
+            $ch = curl_init($connectEndpoint);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => $payload,
+                CURLOPT_HTTPHEADER     => [
+                    'Content-Type: application/json',
+                    'Accept: application/json',
+                    'Content-Length: ' . strlen($payload),
+                ],
+                CURLOPT_TIMEOUT        => 15,
+                CURLOPT_FOLLOWLOCATION => true,
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
 
-            if ($httpCode === 0) {
-                $message = 'No se pudo conectar con el servidor de SoftSys Video. Verifica tu conexión a internet.';
+            if ($httpCode === 0 || !empty($curlError)) {
+                $message = 'No se pudo conectar con el servidor de SoftSys Video. ' . htmlspecialchars($curlError ?: 'Verifica tu conexión a internet.');
                 $messageType = 'danger';
             } else {
                 $data = json_decode($response, true);
