@@ -65,6 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                 ? $overrideEndpoint
                 : 'https://api.softsysvideo.com/api/moodle/connect';
 
+            // Ensure Moodle curl class is loaded
+            require_once($CFG->libdir . '/filelib.php');
+
             // Call POST /api/moodle/connect using Moodle's curl wrapper
             $curl = new \curl();
             $curl->setHeader(['Content-Type: application/json', 'Accept: application/json']);
