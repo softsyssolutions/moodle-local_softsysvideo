@@ -1,0 +1,227 @@
+{{!
+    Template: local_softsysvideo/connect_wizard
+    Main connection wizard — two states: connected / not connected
+}}
+<div class="local-softsysvideo-connect container py-4" style="max-width:640px">
+
+  {{#is_connected}}
+  {{! ── ESTADO: CONECTADO ──────────────────────────────────────── }}
+  <div class="card shadow-sm border-success mb-4">
+    <div class="card-header bg-success text-white d-flex align-items-center gap-2">
+      <span class="fs-5">✅</span>
+      <strong>Conectado a SoftSys Video</strong>
+    </div>
+    <div class="card-body">
+      <dl class="row mb-3">
+        {{#tenant_name}}
+        <dt class="col-sm-4">Organización</dt>
+        <dd class="col-sm-8"><strong>{{tenant_name}}</strong></dd>
+        {{/tenant_name}}
+        {{#credit_balance}}
+        <dt class="col-sm-4">Saldo</dt>
+        <dd class="col-sm-8">
+          <span class="fw-bold {{#credit_balance}}text-success{{/credit_balance}}">${{credit_balance}} USD</span>
+        </dd>
+        {{/credit_balance}}
+        {{#api_url}}
+        <dt class="col-sm-4">API URL</dt>
+        <dd class="col-sm-8"><code class="small">{{api_url}}</code></dd>
+        {{/api_url}}
+      </dl>
+
+      <div id="ssv-status" style="display:none" class="my-3" role="alert"></div>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{wwwroot}}/local/softsysvideo/setup.php"
+           class="btn btn-outline-primary">⚙️ Setup Wizard</a>
+        <button id="ssv-configure-bbb-btn" class="btn btn-success"
+                data-sesskey="{{sesskey}}">
+          🔗 Configurar BigBlueButton
+        </button>
+        <button id="ssv-disconnect-btn" class="btn btn-outline-danger"
+                data-sesskey="{{sesskey}}">
+          🔌 Desconectar
+        </button>
+      </div>
+    </div>
+  </div>
+  {{/is_connected}}
+
+  {{^is_connected}}
+  {{! ── ESTADO: NO CONECTADO ───────────────────────────────────── }}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-light">
+      <h5 class="mb-0">🔌 Conectar con SoftSys Video</h5>
+    </div>
+    <div class="card-body">
+      <p class="text-muted">
+        Ingresa las credenciales de tu cuenta en
+        <a href="https://app.softsysvideo.com" target="_blank">app.softsysvideo.com</a>
+        para conectar este Moodle automáticamente.
+      </p>
+
+      <div class="mb-3">
+        <label for="ssv-email" class="form-label fw-semibold">
+          Email de tu cuenta SoftSys Video <span class="text-danger">*</span>
+        </label>
+        <input type="email" id="ssv-email" class="form-control"
+               placeholder="admin@tuorganizacion.com" autocomplete="email"/>
+      </div>
+
+      <div class="mb-3">
+        <label for="ssv-password" class="form-label fw-semibold">
+          Contraseña (o Shared Secret) <span class="text-danger">*</span>
+        </label>
+        <input type="password" id="ssv-password" class="form-control"
+               autocomplete="current-password"/>
+        <div class="form-text">
+          Usa la contraseña de tu cuenta, o el Shared Secret que encuentras en
+          <a href="https://app.softsysvideo.com/settings" target="_blank">Settings → Moodle Integration</a>.
+        </div>
+      </div>
+
+      {{#bbb_installed}}
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="ssv-configure-bbb" checked/>
+        <label class="form-check-label" for="ssv-configure-bbb">
+          Configurar BigBlueButton automáticamente al conectar
+        </label>
+      </div>
+      {{/bbb_installed}}
+
+      <div id="ssv-status" style="display:none" class="my-3" role="alert"></div>
+
+      <div class="d-flex gap-2">
+        <button id="ssv-connect-btn" class="btn btn-primary px-4"
+                data-sesskey="{{sesskey}}">
+          Conectar
+        </button>
+        <a href="{{wwwroot}}/admin/settings.php?section=local_softsysvideo"
+           class="btn btn-outline-secondary">Cancelar</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 bg-light">
+    <div class="card-body small text-muted">
+      <strong>¿Cómo funciona?</strong>
+      <ol class="mt-1 mb-0 ps-3">
+        <li>Introduces tus credenciales de SoftSys Video</li>
+        <li>El sistema obtiene automáticamente tu API URL, Plugin Key y Shared Secret</li>
+        <li>BigBlueButton se configura para usar SoftSys Video</li>
+        <li>Tus credenciales <strong>no se almacenan</strong> — solo el token de acceso</li>
+      </ol>
+    </div>
+  </div>
+  {{/is_connected}}
+
+</div>
+
+<script>
+(function() {
+  const connectUrl = '{{wwwroot}}/local/softsysvideo/connect.php';
+
+  function showStatus(msg, type) {
+    const s = document.getElementById('ssv-status');
+    if (!s) return;
+    s.style.display = 'block';
+    s.className = 'alert alert-' + type + ' my-3';
+    s.innerHTML = msg;
+  }
+
+  function post(action, extra, sesskey) {
+    const params = new URLSearchParams({ action, sesskey, ...extra });
+    return fetch(connectUrl + '?action=' + action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params,
+    }).then(r => r.json());
+  }
+
+  // ── Connect ──────────────────────────────────────────────────────────────
+  const connectBtn = document.getElementById('ssv-connect-btn');
+  if (connectBtn) {
+    connectBtn.addEventListener('click', async () => {
+      const email    = document.getElementById('ssv-email')?.value.trim();
+      const password = document.getElementById('ssv-password')?.value;
+      const bbbCb    = document.getElementById('ssv-configure-bbb');
+      const configureBbb = bbbCb ? (bbbCb.checked ? '1' : '0') : '0';
+
+      if (!email || !password) {
+        showStatus('Por favor ingresa tu email y contraseña.', 'warning');
+        return;
+      }
+
+      connectBtn.disabled = true;
+      showStatus('⏳ Conectando con SoftSys Video...', 'info');
+
+      try {
+        const data = await post('connect', {
+          email, password, configure_bbb: configureBbb
+        }, connectBtn.dataset.sesskey);
+
+        if (data.ok) {
+          showStatus(
+            '✅ Conectado correctamente a <strong>' + (data.tenant_name || 'SoftSys Video') + '</strong>.' +
+            (data.bbb_configured ? ' BigBlueButton configurado.' : '') +
+            ' Redirigiendo...',
+            'success'
+          );
+          setTimeout(() => {
+            window.location.href = '{{wwwroot}}/admin/settings.php?section=local_softsysvideo';
+          }, 2000);
+        } else {
+          showStatus('❌ ' + (data.error || 'Error de conexión. Verifica tus credenciales.'), 'danger');
+          connectBtn.disabled = false;
+        }
+      } catch (e) {
+        showStatus('❌ Error de red: ' + e.message, 'danger');
+        connectBtn.disabled = false;
+      }
+    });
+  }
+
+  // ── Configure BBB (from connected state) ─────────────────────────────────
+  const bbbBtn = document.getElementById('ssv-configure-bbb-btn');
+  if (bbbBtn) {
+    bbbBtn.addEventListener('click', async () => {
+      bbbBtn.disabled = true;
+      showStatus('⏳ Configurando BigBlueButton...', 'info');
+      try {
+        const r = await fetch('{{wwwroot}}/local/softsysvideo/setup.php?action=configure', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ sesskey: bbbBtn.dataset.sesskey }),
+        });
+        const data = await r.json();
+        if (data.ok) {
+          showStatus('✅ BigBlueButton configurado para usar SoftSys Video.', 'success');
+        } else {
+          showStatus('❌ Error al configurar BBB.', 'danger');
+        }
+      } catch(e) {
+        showStatus('❌ Error: ' + e.message, 'danger');
+      }
+      bbbBtn.disabled = false;
+    });
+  }
+
+  // ── Disconnect ───────────────────────────────────────────────────────────
+  const disconnectBtn = document.getElementById('ssv-disconnect-btn');
+  if (disconnectBtn) {
+    disconnectBtn.addEventListener('click', async () => {
+      if (!confirm('¿Desconectar este Moodle de SoftSys Video? Se eliminarán las credenciales guardadas.')) return;
+      disconnectBtn.disabled = true;
+      try {
+        const data = await post('disconnect', {}, disconnectBtn.dataset.sesskey);
+        if (data.ok) {
+          window.location.href = '{{wwwroot}}/admin/settings.php?section=local_softsysvideo';
+        }
+      } catch(e) {
+        showStatus('Error al desconectar: ' + e.message, 'danger');
+        disconnectBtn.disabled = false;
+      }
+    });
+  }
+})();
+</script>
