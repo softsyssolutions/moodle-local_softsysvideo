@@ -1,75 +1,64 @@
 <?php
 namespace local_softsysvideo;
 
-defined("MOODLE_INTERNAL") || die();
+defined('MOODLE_INTERNAL') || die();
 
 /**
- * Manages the interaction with mod_bigbluebutton configuration.
- *
- * IMPORTANT: This class only writes to bigbluebutton config
- * during an EXPLICIT user action (clicking "Configure BBB").
- * It never auto-modifies BBB config on install or upgrade.
- * This ensures zero conflict with existing BBB installations.
+ * Configures mod_bigbluebutton without conflicting with its own settings namespace.
  */
 class bbb_configurator {
-
     /**
-     * Check if mod_bigbluebutton is installed and enabled.
+     * Check whether mod_bigbluebutton is installed.
+     *
+     * @return bool
      */
     public function is_bbb_installed(): bool {
-        $plugininfo = \core_plugin_manager::instance()->get_plugin_info("mod_bigbluebutton");
+        $pluginmanager = \core_plugin_manager::instance();
+        $plugininfo = $pluginmanager->get_plugin_info('mod_bigbluebutton');
         return $plugininfo !== null && $plugininfo->is_installed_and_upgraded();
     }
 
     /**
-     * Read the current BBB server configuration.
-     * Returns the current server URL and shared secret (may be empty).
+     * Read the current BBB connection settings.
+     *
+     * @return array
      */
     public function get_current_bbb_config(): array {
         return [
-            "server_url"    => get_config("bigbluebutton", "server_url") ?: "",
-            "shared_secret" => get_config("bigbluebutton", "shared_secret") ?: "",
+            'server_url' => (string)get_config('bigbluebutton', 'server_url'),
+            'shared_secret' => (string)get_config('bigbluebutton', 'shared_secret'),
         ];
     }
 
     /**
-     * Configure mod_bigbluebutton to use SoftSys Video.
+     * Write BBB connection settings through Moodle's config API.
      *
-     * Called ONLY on explicit user confirmation via setup.php.
-     * Writes to bigbluebutton plugin config (same keys the BBB admin settings use).
-     *
-     * @param string $server_url    The SoftSys Video API URL (tenant subdomain)
-     * @param string $shared_secret The BBB-compatible shared secret from SoftSys Video
-     * @return bool True on success
+     * @param string $server_url
+     * @param string $shared_secret
+     * @return bool
      */
     public function configure_bbb(string $server_url, string $shared_secret): bool {
-        set_config("server_url", $server_url, "bigbluebutton");
-        set_config("shared_secret", $shared_secret, "bigbluebutton");
-
-        // Purge the BBB plugin caches so the new config takes effect immediately
-        if (function_exists("cache_helper::purge_by_definition")) {
-            try {
-                \cache_helper::purge_by_definition("mod_bigbluebutton", "serverinfo");
-            } catch (\Exception $e) {
-                // Non-critical — ignore if cache definition does not exist
-            }
+        if (!$this->is_bbb_installed()) {
+            return false;
         }
+
+        set_config('server_url', rtrim($server_url, '/'), 'bigbluebutton');
+        set_config('shared_secret', trim($shared_secret), 'bigbluebutton');
 
         return true;
     }
 
     /**
-     * Check if BBB is already pointing to a SoftSys Video API endpoint.
+     * Determine whether the current BBB URL points at SoftSys Video.
      *
-     * @param string $api_url The expected SoftSys Video API URL
+     * @param string $api_url
+     * @return bool
      */
     public function is_configured_for_softsysvideo(string $api_url): bool {
-        $current = get_config("bigbluebutton", "server_url") ?: "";
-        if (empty($current) || empty($api_url)) {
-            return false;
-        }
-        $expectedHost = parse_url($api_url, PHP_URL_HOST);
-        $currentHost  = parse_url($current, PHP_URL_HOST);
-        return !empty($expectedHost) && $expectedHost === $currentHost;
+        $current = $this->get_current_bbb_config();
+        $currenturl = rtrim($current['server_url'], '/');
+        $targeturl = rtrim($api_url, '/');
+
+        return $currenturl !== '' && strpos($currenturl, $targeturl) === 0;
     }
 }

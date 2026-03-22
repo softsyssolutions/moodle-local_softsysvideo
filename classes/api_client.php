@@ -1,124 +1,187 @@
 <?php
 namespace local_softsysvideo;
 
-defined("MOODLE_INTERNAL") || die();
+defined('MOODLE_INTERNAL') || die();
 
 /**
- * HTTP client for SoftSys Video API Worker.
- *
- * Authenticates with X-Plugin-Key header (per-tenant key).
- * All endpoints are read-only except support ticket creation.
+ * API client for the SoftSys Video plugin endpoints.
  */
 class api_client {
-
+    /** @var string */
     private string $api_url;
+
+    /** @var string */
     private string $plugin_key;
 
+    /** @var array */
+    private array $last_health = [];
+
+    /**
+     * @param string $api_url
+     * @param string $plugin_key
+     */
     public function __construct(string $api_url, string $plugin_key) {
-        $this->api_url    = rtrim($api_url, "/");
-        $this->plugin_key = $plugin_key;
+        $this->api_url = rtrim($api_url, '/');
+        $this->plugin_key = trim($plugin_key);
     }
 
     /**
-     * Test connectivity — calls /health (no auth required).
+     * Test the tenant connection using the health endpoint.
+     *
+     * @return bool
      */
     public function test_connection(): bool {
-        try {
-            $result = $this->make_request("GET", "/health");
-            return isset($result["status"]) && $result["status"] === "ok";
-        } catch (\Exception $e) {
-            return false;
-        }
+        $response = $this->make_request('GET', '/health');
+        $this->last_health = $response['body'];
+        return !empty($response['ok']);
     }
 
     /**
-     * Get credit balance and recent ledger.
-     * Scope: credits:read
+     * Return the most recent health payload.
+     *
+     * @return array
+     */
+    public function get_last_health(): array {
+        return $this->last_health;
+    }
+
+    /**
+     * Get current credits and balance data.
+     *
+     * @return array
      */
     public function get_credits(): array {
-        return $this->make_request("GET", "/api/plugin/credits");
+        $response = $this->make_request('GET', '/api/plugin/credits');
+        return $response['body'];
     }
 
     /**
-     * Get usage statistics for last 30 days.
-     * Scope: analytics:read
+     * Get current usage data.
+     *
+     * @return array
      */
     public function get_usage(): array {
-        return $this->make_request("GET", "/api/plugin/usage");
+        $response = $this->make_request('GET', '/api/plugin/usage');
+        return $response['body'];
     }
 
     /**
-     * List meetings with optional filters.
-     * Scope: meetings:read
+     * Get meeting records with optional filters.
      *
-     * @param array $params Optional: limit, offset, status (active|ended)
+     * @param array $params
+     * @return array
      */
     public function get_meetings(array $params = []): array {
-        $qs = !empty($params) ? "?" . http_build_query($params) : "";
-        return $this->make_request("GET", "/api/plugin/meetings" . $qs);
+        $response = $this->make_request('GET', '/api/plugin/meetings', $params);
+        return $response['body'];
     }
 
     /**
-     * Get chat download URL for a meeting.
-     * Scope: meetings:read
+     * Get meeting chat content or export payload.
      *
-     * @return string|null Download URL or null if not available
+     * @param string $session_id
+     * @return string|null
      */
     public function get_meeting_chat(string $session_id): ?string {
-        $result = $this->make_request("GET", "/api/plugin/meetings/{$session_id}/chat");
-        return $result["download_url"] ?? null;
+        $response = $this->make_request('GET', '/api/plugin/meetings/' . rawurlencode($session_id) . '/chat');
+
+        if (isset($response['body']['raw']) && is_string($response['body']['raw'])) {
+            return $response['body']['raw'];
+        }
+
+        if (isset($response['body']['chat']) && is_string($response['body']['chat'])) {
+            return $response['body']['chat'];
+        }
+
+        if (isset($response['body']['download_url']) && is_string($response['body']['download_url'])) {
+            return $response['body']['download_url'];
+        }
+
+        return null;
     }
 
     /**
-     * Get AI summary for a meeting.
-     * Scope: meetings:read
+     * Get the AI summary payload for a meeting.
      *
-     * @return array|null Array with status + summary_url, or null on error
+     * @param string $session_id
+     * @return array|null
      */
     public function get_meeting_summary(string $session_id): ?array {
-        return $this->make_request("GET", "/api/plugin/meetings/{$session_id}/summary") ?: null;
+        $response = $this->make_request('GET', '/api/plugin/meetings/' . rawurlencode($session_id) . '/summary');
+        return $response['body'] ?: null;
     }
 
     /**
-     * Create a support ticket with optional Moodle context.
-     * Scope: support:write
+     * Create a support ticket for the current tenant.
      *
-     * @param array $data Keys: subject, description, moodle_course_id?, moodle_site_url?, moodle_course_name?
+     * @param array $data
+     * @return array
      */
     public function create_support_ticket(array $data): array {
-        return $this->make_request("POST", "/api/plugin/support/ticket", $data);
+        $response = $this->make_request('POST', '/api/plugin/support/ticket', $data);
+        return $response['body'];
     }
 
     /**
-     * Internal HTTP request using Moodle curl class.
+     * Execute an HTTP request with Moodle's curl class.
+     *
+     * @param string $method
+     * @param string $path
+     * @param array $data
+     * @return array
      */
     private function make_request(string $method, string $path, array $data = []): array {
         global $CFG;
-        require_once($CFG->libdir . "/filelib.php");
+
+        require_once($CFG->libdir . '/filelib.php');
+
+        $method = strtoupper($method);
+        $url = $this->api_url . $path;
+        $headers = [
+            'Accept: application/json',
+            'X-Plugin-Key: ' . $this->plugin_key,
+        ];
+
+        $options = [
+            'CURLOPT_RETURNTRANSFER' => true,
+            'CURLOPT_TIMEOUT' => 20,
+            'CURLOPT_FOLLOWLOCATION' => false,
+            'CURLOPT_HTTPHEADER' => $headers,
+        ];
 
         $curl = new \curl();
-        $curl->setHeader([
-            "X-Plugin-Key: " . $this->plugin_key,
-            "Content-Type: application/json",
-            "Accept: application/json",
-        ]);
 
-        $url = $this->api_url . $path;
-
-        if ($method === "GET") {
-            $response = $curl->get($url);
+        if ($method === 'GET') {
+            $rawbody = $curl->get($url, $data, $options);
+        } else if ($method === 'POST') {
+            $headers[] = 'Content-Type: application/json';
+            $options['CURLOPT_HTTPHEADER'] = $headers;
+            $rawbody = $curl->post($url, json_encode($data), $options);
         } else {
-            $response = $curl->post($url, json_encode($data));
+            throw new \moodle_exception('unsupportedmethod', 'error', '', $method);
         }
 
         $info = $curl->get_info();
-        $httpCode = $info["http_code"] ?? 0;
+        $httpcode = (int)($info['http_code'] ?? 0);
 
-        if (!$response || $httpCode >= 400) {
-            debugging("local_softsysvideo: API request failed [{$method} {$path}] HTTP {$httpCode}", DEBUG_DEVELOPER);
-            return [];
+        if ($rawbody === false || $httpcode === 0 || $httpcode >= 400) {
+            throw new \moodle_exception('connection_failed', 'local_softsysvideo');
         }
 
-        return json_decode($response, true) ?? [];
+        $body = [];
+        if (is_string($rawbody) && $rawbody !== '') {
+            $decoded = json_decode($rawbody, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $body = $decoded;
+            } else {
+                $body = ['raw' => $rawbody];
+            }
+        }
+
+        return [
+            'ok' => $httpcode >= 200 && $httpcode < 300,
+            'status' => $httpcode,
+            'body' => $body,
+        ];
     }
 }

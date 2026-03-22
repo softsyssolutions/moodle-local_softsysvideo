@@ -1,122 +1,38 @@
-{{!
-    Template: local_softsysvideo/setup_wizard
-    Setup wizard for connecting Moodle to SoftSys Video API
-}}
-<div class="local-softsysvideo-setup container-fluid py-4">
-
-    {{#bbb_not_installed_warning}}
-    <div class="alert alert-warning d-flex align-items-center gap-2" role="alert">
-        <i class="fa fa-exclamation-triangle"></i>
-        <span>{{#str}}bbb_not_installed, local_softsysvideo{{/str}}</span>
+<div class="local-softsysvideo-setup">
+    <div class="alert {{statusclass}}" role="status">
+        <strong>{{#str}}status, local_softsysvideo{{/str}}:</strong> {{statuslabel}}<br>
+        <span>{{statusmessage}}</span>
     </div>
-    {{/bbb_not_installed_warning}}
 
-    <div class="row">
-        <div class="col-md-7">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fa fa-video-camera me-2"></i>
-                        {{#str}}setup_wizard, local_softsysvideo{{/str}}
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted mb-4">
-                        Enter your SoftSys Video credentials to auto-configure BigBlueButton.
-                        Get your credentials from <strong>app.softsysvideo.com</strong> → Settings → Moodle Integration.
-                    </p>
+    <form id="local-softsysvideo-setup-form" class="mform">
+        <input type="hidden" id="softsysvideo-sesskey" value="{{sesskey}}">
 
-                    <div class="mb-3">
-                        <label for="softsysvideo-api-url" class="form-label fw-semibold">
-                            {{#str}}api_url, local_softsysvideo{{/str}}
-                        </label>
-                        <input type="url"
-                               id="softsysvideo-api-url"
-                               class="form-control"
-                               value="{{api_url}}"
-                               placeholder="https://api-yourcompany-xxxx.softsysvideo.com" />
-                        <div class="form-text">{{#str}}api_url_help, local_softsysvideo{{/str}}</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="softsysvideo-plugin-key" class="form-label fw-semibold">
-                            {{#str}}plugin_key, local_softsysvideo{{/str}}
-                        </label>
-                        <input type="password"
-                               id="softsysvideo-plugin-key"
-                               class="form-control"
-                               placeholder="ssv_pk_..." />
-                        <div class="form-text">{{#str}}plugin_key_help, local_softsysvideo{{/str}}</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="softsysvideo-shared-secret" class="form-label fw-semibold">
-                            {{#str}}shared_secret, local_softsysvideo{{/str}}
-                        </label>
-                        <input type="password"
-                               id="softsysvideo-shared-secret"
-                               class="form-control"
-                               placeholder="" />
-                        <div class="form-text">BBB-compatible shared secret provided by SoftSys Video.</div>
-                    </div>
-
-                    <div id="softsysvideo-status" style="display:none" class="my-3" role="alert"></div>
-
-                    <div class="d-flex gap-2 mt-4">
-                        <button id="softsysvideo-test-btn" class="btn btn-outline-primary">
-                            <i class="fa fa-plug me-1"></i>
-                            {{#str}}test_connection, local_softsysvideo{{/str}}
-                        </button>
-                        <button id="softsysvideo-configure-btn"
-                                class="btn btn-success"
-                                style="display:none"
-                                data-sesskey="{{sesskey}}">
-                            <i class="fa fa-check me-1"></i>
-                            {{#str}}configure_bbb, local_softsysvideo{{/str}}
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <div class="mb-3">
+            <label class="form-label" for="softsysvideo-api-url">{{#str}}api_url, local_softsysvideo{{/str}}</label>
+            <input class="form-control" id="softsysvideo-api-url" type="url" value="{{apiurl}}" required>
+            <div class="form-text">{{#str}}api_url_help, local_softsysvideo{{/str}}</div>
         </div>
 
-        <div class="col-md-5">
-            <div class="card shadow-sm mb-3">
-                <div class="card-body">
-                    <h6 class="card-title">Connection Status</h6>
-                    {{#is_connected}}
-                    <div class="d-flex align-items-center gap-2 text-success">
-                        <i class="fa fa-check-circle fa-lg"></i>
-                        <div>
-                            <strong>{{#str}}connected, local_softsysvideo{{/str}}</strong>
-                            <div class="small text-muted text-truncate" style="max-width:220px">{{api_url}}</div>
-                        </div>
-                    </div>
-                    {{/is_connected}}
-                    {{^is_connected}}
-                    <div class="d-flex align-items-center gap-2 text-secondary">
-                        <i class="fa fa-times-circle fa-lg"></i>
-                        <strong>{{#str}}not_connected, local_softsysvideo{{/str}}</strong>
-                    </div>
-                    {{/is_connected}}
-                </div>
-            </div>
-
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6 class="card-title">How it works</h6>
-                    <ol class="small text-muted ps-3">
-                        <li>Enter your API URL and Plugin Key</li>
-                        <li>Click <strong>Test Connection</strong></li>
-                        <li>Enter your Shared Secret</li>
-                        <li>Click <strong>Configure BigBlueButton</strong></li>
-                        <li>Done! BBB activities will now use SoftSys Video</li>
-                    </ol>
-                    <div class="small text-muted mt-2">
-                        <i class="fa fa-info-circle"></i>
-                        Existing BBB activities are not affected.
-                    </div>
-                </div>
-            </div>
+        <div class="mb-3">
+            <label class="form-label" for="softsysvideo-plugin-key">{{#str}}plugin_key, local_softsysvideo{{/str}}</label>
+            <input class="form-control" id="softsysvideo-plugin-key" type="password" value="{{pluginkey}}" required>
+            <div class="form-text">{{#str}}plugin_key_help, local_softsysvideo{{/str}}</div>
         </div>
-    </div>
+
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary" id="softsysvideo-test-btn">
+                {{#str}}test_connection, local_softsysvideo{{/str}}
+            </button>
+            <button type="button" class="btn btn-primary d-none" id="softsysvideo-configure-btn">
+                {{#str}}configure_bbb, local_softsysvideo{{/str}}
+            </button>
+        </div>
+    </form>
+
+    <div
+        id="softsysvideo-status"
+        class="mt-3"
+        aria-live="polite"
+        data-testing-label="{{testinglabel}}"
+        data-request-failed-label="{{requestfailedlabel}}"></div>
 </div>

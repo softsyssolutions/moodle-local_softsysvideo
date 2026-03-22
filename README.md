@@ -1,96 +1,76 @@
-# local_softsysvideo — SoftSys Video Moodle Plugin
+# local_softsysvideo
 
-Companion plugin for `mod_bigbluebutton` that connects your Moodle to [SoftSys Video](https://softsysvideo.com).
+`local_softsysvideo` is a Moodle local companion plugin for `mod_bigbluebutton`.
 
-## What it does
+## What This Plugin Does
 
-- **Auto-configures `mod_bigbluebutton`** to point to your SoftSys Video API endpoint
-- Displays your **credit balance** and **usage statistics** in the Moodle admin panel
-- Provides access to **chat export** and **AI meeting summaries** from BBB activities
-- Integrated **support ticket** creation directly from Moodle
+- Stores SoftSys Video connection settings with Moodle's config API.
+- Provides an admin setup wizard to test connectivity against the SoftSys Video API Worker.
+- Explicitly configures `mod_bigbluebutton` to use the SoftSys Video server URL and shared secret only when an authorized administrator clicks `Configure BBB`.
+- Adds the foundation for credits and balance display, analytics, chat export, AI summary, and support integrations through `/api/plugin/*` endpoints.
 
-## What it does NOT do
+## What This Plugin Does Not Do
 
-- ❌ Does NOT replace `mod_bigbluebutton` — it works **alongside** it
-- ❌ Does NOT modify or break your existing BBB activities
-- ❌ Does NOT require uninstalling or reconfiguring any existing BBB setup
-- ❌ Does NOT conflict with an existing institutional BBB server
+- It does not replace `mod_bigbluebutton`.
+- It does not create or manage BigBlueButton meetings directly.
+- It does not write to BigBlueButton settings during install, upgrade, or passive page loads.
+- It does not add custom database tables in phase 1.
 
 ## Requirements
 
-- Moodle **4.1 or newer** (LTS recommended)
-- `mod_bigbluebutton` plugin installed and enabled
-- A **SoftSys Video account** — [sign up at softsysvideo.com](https://softsysvideo.com)
+- Moodle 4.1 or newer
+- `mod_bigbluebutton` installed
+- A SoftSys Video account
+- A tenant Plugin API Key from `app.softsysvideo.com`
 
 ## Installation
 
-### Option A — Upload via Moodle UI
-1. Download this repository as a ZIP file
-2. Go to **Site administration → Plugins → Install plugins**
-3. Upload the ZIP and follow the prompts
+### Upload ZIP
 
-### Option B — CLI
+1. Package this plugin as a zip file.
+2. Go to `Site administration -> Plugins -> Install plugins`.
+3. Upload the zip and complete the Moodle upgrade flow.
+
+### CLI
+
+1. Place the plugin in `local/softsysvideo`.
+2. Run:
+
 ```bash
-# From your Moodle root
-git clone https://github.com/softsyssolutions/moodle-local_softsysvideo.git local/softsysvideo
 php admin/cli/upgrade.php
 ```
 
-## Getting your credentials
+## Configuration
 
-1. Log in to [app.softsysvideo.com](https://app.softsysvideo.com)
-2. Go to **Settings → Moodle Integration**
-3. Click **Generate Plugin Key**
-4. Copy your:
-   - **API URL** (your tenant subdomain, e.g. `https://api-yourcompany-xxxx.softsysvideo.com`)
-   - **Plugin API Key** (format: `ssv_pk_...`) — shown only once, save it securely
-   - **Shared Secret** — for BBB-compatible checksum validation
+1. Go to `Site administration -> Plugins -> Local plugins -> SoftSys Video companion`.
+2. Enter the SoftSys Video API URL.
+3. Enter the tenant Plugin API Key.
+4. Enter the BBB shared secret supplied for your tenant.
+5. Open the Setup Wizard.
+6. Click `Test connection`.
+7. After a successful test, click `Configure BBB`.
 
-## Configuration in Moodle
+Only the explicit `Configure BBB` action writes to `mod_bigbluebutton` settings.
 
-1. Go to **Site administration → Plugins → Local plugins → SoftSys Video → Setup**
-2. Enter your **API URL** and **Plugin API Key**
-3. Click **Test Connection** — you should see your tenant name and balance
-4. Enter your **Shared Secret**
-5. Click **Configure BigBlueButton** to auto-apply the credentials
+## Getting Your Plugin API Key
 
-From this point, all BBB activities in Moodle will use SoftSys Video as the backend.
-
-## Coexistence with existing BBB installations
-
-Both plugins can run on the **same Moodle simultaneously** without any conflict:
-
-| Aspect | mod_bigbluebutton (BBB official) | local_softsysvideo (this plugin) |
-|---|---|---|
-| Plugin type | Activity module | Local plugin |
-| Tables | `mdl_bigbluebutton` | None (uses Moodle config) |
-| Capabilities | `mod/bigbluebutton:*` | `local/softsysvideo:*` |
-| Config keys | `bigbluebutton_*` | `local_softsysvideo_*` |
-
-The only shared resource is the BBB server URL and shared secret in `mod_bigbluebutton` config. This plugin only writes to those during an **explicit "Configure BigBlueButton" action** — never automatically.
+1. Sign in at `https://app.softsysvideo.com`.
+2. Open your tenant administration area.
+3. Generate a Moodle Plugin API Key.
+4. Copy the key into the plugin settings or setup wizard.
 
 ## Security
 
-| Property | Detail |
-|---|---|
-| **Isolation** | Each Moodle uses a unique Plugin API Key (`ssv_pk_...`) |
-| **Scope** | Keys are read-only by default (credits, analytics, meetings) |
-| **No cross-tenant exposure** | Compromise of one key never exposes other tenants |
-| **Revocation** | Keys can be revoked instantly from the SoftSys Video dashboard |
-| **Transport** | All communication over HTTPS (TLS 1.2+) |
-| **Key storage** | Keys stored as SHA-256 hashes on the server — plain key shown only once |
+- Plugin API Keys are tenant-specific.
+- Requests to the SoftSys Video API use the `X-Plugin-Key` header.
+- The setup wizard does not expose the BBB shared secret in browser requests.
+- BigBlueButton configuration is updated only during an explicit authorized connect flow.
+- Phase 1 uses Moodle's config API and avoids direct SQL for plugin state.
 
-## Changelog
+## Coexistence With Existing BBB
 
-See [CHANGELOG.md](CHANGELOG.md)
-
-## License
-
-GNU General Public License v3.0 or later  
-See [LICENSE](https://www.gnu.org/licenses/gpl-3.0.html)
+`local_softsysvideo` coexists with `mod_bigbluebutton`. It uses its own namespace, capabilities, templates, and settings. It does not create conflicting BigBlueButton tables or capabilities. Both plugins can be installed simultaneously, and the companion plugin only touches the `server_url` and `shared_secret` config keys in `mod_bigbluebutton` during the explicit setup action.
 
 ## Support
 
-- **Documentation:** [docs.softsysvideo.com](https://docs.softsysvideo.com)
-- **Issues:** [GitHub Issues](https://github.com/softsyssolutions/moodle-local_softsysvideo/issues)
-- **Email:** support@softsyssolutions.com
+For tenant support, billing questions, analytics questions, chat export help, or AI summary issues, contact SoftSys Solutions through your SoftSys Video support channel.

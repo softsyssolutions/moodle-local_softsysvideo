@@ -1,8 +1,8 @@
 <div class="card local-softsysvideo-credits">
     <div class="card-body">
         <h3 class="card-title">{{#str}}credits_balance, local_softsysvideo{{/str}}</h3>
-        <p class="display-6 mb-1">${{balance}}</p>
-        <p class="text-muted mb-0">{{#str}}monthly_usage, local_softsysvideo{{/str}}: ${{monthlyusage}}</p>
+        <p class="display-6 mb-1">${{balance}} USD</p>
+        <p class="text-muted mb-0">{{#str}}monthly_usage, local_softsysvideo{{/str}}: {{monthlyusage}}</p>
         {{#lowbalance}}
             <div class="alert alert-warning mt-3 mb-0" role="alert">
                 {{#str}}balance_warning, local_softsysvideo{{/str}}
