@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                     set_config('softsysvideo_plugin_key',    $data['plugin_key'],     'local_softsysvideo');
                     set_config('softsysvideo_shared_secret', $data['shared_secret'],  'local_softsysvideo');
                     set_config('softsysvideo_tenant_name',   $data['tenant_name'],    'local_softsysvideo');
-                    set_config('cache_credit_balance',       $data['credit_balance'], 'local_softsysvideo');
+                    set_config('cache_credit_balance', $data['credit_balance'] ?? null, 'local_softsysvideo');
                     set_config('cache_updated_at',           time(),                  'local_softsysvideo');
                     set_config('softsysvideo_connection_id', $data['connection_id'] ?? '', 'local_softsysvideo');
 
