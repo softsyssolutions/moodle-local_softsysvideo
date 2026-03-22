@@ -40,7 +40,7 @@ echo $OUTPUT->header();
     <div class="d-flex align-items-center gap-3 mb-4">
       <div>
         <h2 class="mb-0">📊 Dashboard</h2>
-        <span class="badge bg-success">🟢 Conectado — <?php echo htmlspecialchars($tenantName); ?></span>
+        <span class="badge bg-success" id="tenant-name-badge">🟢 Conectado — <?php echo htmlspecialchars($tenantName); ?></span>
       </div>
     </div>
 
@@ -117,10 +117,11 @@ echo $OUTPUT->header();
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
-        document.getElementById('stat-meetings').textContent    = data.this_month ? data.this_month.meetings    : '—';
-        document.getElementById('stat-hours').textContent       = data.this_month ? data.this_month.hours       : '—';
+        document.getElementById('stat-meetings').textContent = data.this_month ? data.this_month.meetings : '—';
+        if (data.tenant_name) { document.getElementById('tenant-name-badge').textContent = '🟢 Conectado — ' + data.tenant_name; }
+        document.getElementById('stat-hours').textContent       = data.this_month ? data.this_month.total_hours       : '—';
         document.getElementById('stat-participants').textContent = data.this_month ? data.this_month.participants : '—';
-        document.getElementById('stat-recordings').textContent  = data.total_recordings !== undefined ? data.total_recordings : '—';
+        document.getElementById('stat-recordings').textContent  = data.this_month ? data.this_month.recordings : '—';
     })
     .catch(function() {
         document.getElementById('ssv-stats-error').classList.remove('d-none');

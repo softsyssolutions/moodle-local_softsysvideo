@@ -84,8 +84,8 @@ echo $OUTPUT->header();
                 var row = '<tr>'
                     + '<td>' + (m.name || '—') + '</td>'
                     + '<td>' + (m.start_date || m.started_at || m.created_at || '—') + '</td>'
-                    + '<td>' + (m.duration || '—') + '</td>'
-                    + '<td>' + (m.participants !== undefined ? m.participants : '—') + '</td>'
+                    + '<td>' + (m.duration_seconds ? Math.round(m.duration_seconds/60) + ' min' : '—') + '</td>'
+                    + '<td>' + (m.participant_count !== undefined ? m.participant_count : '—') + '</td>'
                     + '</tr>';
                 tbody.innerHTML += row;
             });
