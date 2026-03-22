@@ -25,12 +25,10 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'SoftSys Video';
-$string['setup_wizard'] = 'Setup wizard';
 $string['connect'] = 'Connect';
 $string['connect_account'] = 'Connect account';
 $string['disconnect'] = 'Disconnect';
 $string['reconnect'] = 'Reconnect';
-$string['test_connection'] = 'Test connection';
 $string['connected'] = 'Connected';
 $string['not_connected'] = 'Not connected';
 $string['api_url'] = 'SoftSys Video API URL';
@@ -38,16 +36,11 @@ $string['api_url_help'] = 'Enter the API URL for your SoftSys Video instance.';
 $string['plugin_key'] = 'Plugin API key';
 $string['plugin_key_help'] = 'Plugin key obtained when connecting this Moodle to SoftSys Video.';
 $string['shared_secret'] = 'Shared secret';
-$string['credits_balance'] = 'Credits balance';
-$string['monthly_usage'] = 'Monthly usage';
 $string['connection_success'] = 'Connection successful.';
 $string['connection_failed'] = 'Connection failed.';
-$string['testing'] = 'Testing...';
 $string['request_failed'] = 'The request failed.';
-$string['missing_connection_fields'] = 'API URL and Plugin API Key are required.';
 $string['privacy:metadata'] = 'The local_softsysvideo plugin does not store personal data.';
-$string['status'] = 'Status';
-$string['balance_warning'] = 'Balance is below $5. Add credits to avoid service interruptions.';
+
 $string['tenant_name'] = 'Tenant';
 $string['disconnected'] = 'Disconnected from SoftSys Video.';
 $string['dashboard'] = 'Dashboard';
@@ -81,3 +74,5 @@ $string['previous'] = 'Previous';
 $string['next'] = 'Next';
 $string['page_x_of_y'] = 'Page {$a->current} of {$a->total}';
 $string['no_results'] = 'No results found.';
+$string['support_sent'] = 'Your support request has been sent.';
+$string['support_error'] = 'Failed to send support request. Please contact your administrator.';

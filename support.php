@@ -17,6 +17,8 @@
 /**
  * Support page for the SoftSys Video companion plugin.
  *
+ * Sends a support request email to the Moodle site administrator.
+ *
  * @package    local_softsysvideo
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -35,7 +37,7 @@ $PAGE->set_heading('Soporte SoftSys Video');
 
 $action = optional_param('action', '', PARAM_ALPHA);
 
-// AJAX: enviar ticket
+// AJAX: enviar ticket por email al admin del sitio
 if ($action === 'submit') {
     header('Content-Type: application/json');
     require_sesskey();
@@ -44,34 +46,42 @@ if ($action === 'submit') {
     $description = required_param('description', PARAM_TEXT);
     $courseId    = optional_param('course_id', '', PARAM_TEXT);
 
-    $apiUrl    = get_config('local_softsysvideo', 'softsysvideo_api_url');
-    $pluginKey = get_config('local_softsysvideo', 'softsysvideo_plugin_key');
+    $admin = get_admin();
+    $from  = $USER;
 
-    if (empty($apiUrl) || empty($pluginKey)) {
-        echo json_encode(['ok' => false, 'error' => 'Plugin not configured']);
-        exit;
+    $messagetext  = strip_tags($description) . "\n\n";
+    $messagetext .= "Moodle: {$CFG->wwwroot}\n";
+    $messagetext .= "Plugin: local_softsysvideo\n";
+    if ($courseId) {
+        $messagetext .= "Course ID: {$courseId}\n";
     }
 
-    try {
-        require_once($CFG->dirroot . '/local/softsysvideo/classes/api_client.php');
-        $client = new \local_softsysvideo\api_client($apiUrl, $pluginKey);
-        $result = $client->create_support_ticket([
-            'subject'          => $subject,
-            'description'      => $description,
-            'moodle_site_url'  => $CFG->wwwroot,
-            'moodle_course_id' => $courseId,
-            'fullName'         => fullname($USER) . ' (' . $USER->email . ')',
-        ]);
-        echo json_encode(['ok' => true, 'result' => $result]);
-    } catch (\Exception $e) {
-        echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
+    $messagehtml  = html_writer::tag('p', format_text($description, FORMAT_PLAIN));
+    $messagehtml .= html_writer::tag('p', 'Moodle: ' . $CFG->wwwroot);
+    $messagehtml .= html_writer::tag('p', 'Plugin: local_softsysvideo');
+    if ($courseId) {
+        $messagehtml .= html_writer::tag('p', 'Course ID: ' . s($courseId));
+    }
+
+    $result = email_to_user(
+        $admin,
+        $from,
+        '[SoftSys Video Support] ' . $subject,
+        $messagetext,
+        $messagehtml
+    );
+
+    if ($result) {
+        echo json_encode(['ok' => true]);
+    } else {
+        echo json_encode(['ok' => false, 'error' => get_string('support_error', 'local_softsysvideo')]);
     }
     exit;
 }
 
 echo $OUTPUT->header();
 echo $OUTPUT->render_from_template('local_softsysvideo/support_form', [
-    'sesskey'   => sesskey(),
-    'wwwroot'   => $CFG->wwwroot,
+    'sesskey' => sesskey(),
+    'wwwroot' => $CFG->wwwroot,
 ]);
 echo $OUTPUT->footer();
