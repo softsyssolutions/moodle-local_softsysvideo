@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             } else {
                 $data = json_decode($response, true);
 
-                if ($httpCode !== 201 || empty($data['plugin_key'])) {
+                if (($httpCode !== 200 && $httpCode !== 201) || empty($data['plugin_key'])) {
                     $message = $data['error'] ?? 'Error de conexión (HTTP ' . $httpCode . ')';
                     $messageType = 'danger';
                 } else {
