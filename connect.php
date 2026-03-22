@@ -17,6 +17,7 @@ require_once($CFG->libdir . '/adminlib.php');
 require_login();
 require_capability('local/softsysvideo:manage', context_system::instance());
 
+$PAGE->set_context(context_system::instance());
 $PAGE->set_url(new moodle_url('/local/softsysvideo/connect.php'));
 $PAGE->set_title(get_string('setup_wizard', 'local_softsysvideo'));
 $PAGE->set_heading(get_string('setup_wizard', 'local_softsysvideo'));

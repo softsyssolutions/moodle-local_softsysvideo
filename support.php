@@ -5,6 +5,7 @@ require_once($CFG->libdir . '/adminlib.php');
 require_login();
 require_capability('local/softsysvideo:manage', context_system::instance());
 
+$PAGE->set_context(context_system::instance());
 $PAGE->set_url(new moodle_url('/local/softsysvideo/support.php'));
 $PAGE->set_title('Soporte SoftSys Video');
 $PAGE->set_heading('Soporte SoftSys Video');
