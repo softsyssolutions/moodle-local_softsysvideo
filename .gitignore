@@ -1,0 +1,6 @@
+vendor/
+node_modules/
+*.log
+.DS_Store
+amd/build/*.min.js
+amd/build/*.min.js.map

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/softsysvideo/db" VERSION="2026032200"
+       COMMENT="local_softsysvideo - no custom tables in v0.1 (uses Moodle config system)">
+  <TABLES>
+  </TABLES>
+</XMLDB>
