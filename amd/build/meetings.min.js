@@ -15,64 +15,119 @@
 
 /**
  * Meetings AMD module for local_softsysvideo.
+ * Supports pagination, search with debounce, and spinner.
  *
  * @module     local_softsysvideo/meetings
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
-    return {
-        init: function(apiUrl, pluginKey) {
-            fetch(apiUrl + '/api/moodle/meetings', {
-                headers: {'Authorization': 'Bearer ' + pluginKey}
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                var meetings = data.meetings || data || [];
-                if (!Array.isArray(meetings)) {
-                    meetings = [];
-                }
-                var tbody = document.getElementById('ssv-meetings-tbody');
-                var count = document.getElementById('ssv-meetings-count');
-                var loading = document.getElementById('ssv-meetings-loading');
-                var container = document.getElementById('ssv-meetings-container');
-                if (loading) {
-                    loading.classList.add('d-none');
-                }
-                if (!tbody) {
-                    return;
-                }
-                if (meetings.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No hay reuniones recientes</td></tr>';
-                    if (count) {
-                        count.textContent = '0 reuni\u00f3n(es) encontrada(s).';
-                    }
-                } else {
-                    if (count) {
-                        count.textContent = meetings.length + ' reuni\u00f3n(es) encontrada(s).';
-                    }
-                    tbody.innerHTML = meetings.map(function(m) {
-                        var date = m.started_at ? new Date(m.started_at * 1000).toLocaleString() : '\u2014';
-                        var dur = m.duration_seconds ? Math.round(m.duration_seconds / 60) + ' min' : '\u2014';
-                        var parts = m.participant_count !== undefined ? m.participant_count : '\u2014';
-                        return '<tr><td>' + (m.name || '\u2014') + '</td><td>' + date + '</td><td>'
-                            + dur + '</td><td>' + parts + '</td></tr>';
-                    }).join('');
-                }
-                if (container) {
-                    container.classList.remove('d-none');
-                }
-            })
-            .catch(function() {
-                var loading = document.getElementById('ssv-meetings-loading');
-                if (loading) {
-                    loading.classList.add('d-none');
-                }
-                var err = document.getElementById('ssv-meetings-error');
-                if (err) {
-                    err.classList.remove('d-none');
-                }
+
+    var apiUrl = '';
+    var pluginKey = '';
+    var currentPage = 1;
+    var currentSearch = '';
+    var debounceTimer = null;
+
+    function showSpinner() {
+        var spinner = document.getElementById('ssv-meetings-spinner');
+        if (spinner) { spinner.classList.remove('d-none'); }
+        var container = document.getElementById('ssv-meetings-container');
+        if (container) { container.classList.add('d-none'); }
+    }
+
+    function hideSpinner() {
+        var spinner = document.getElementById('ssv-meetings-spinner');
+        if (spinner) { spinner.classList.add('d-none'); }
+    }
+
+    function renderPagination(page, totalPages) {
+        var pag = document.getElementById('ssv-meetings-pagination');
+        if (!pag) { return; }
+        var prevDisabled = page <= 1 ? ' disabled' : '';
+        var nextDisabled = page >= totalPages ? ' disabled' : '';
+        pag.innerHTML =
+            '<button class="btn btn-sm btn-outline-secondary' + prevDisabled + '" id="ssv-meet-prev">\u2039 Anterior</button>' +
+            '<span class="mx-2 align-self-center">P\u00e1gina ' + page + ' de ' + totalPages + '</span>' +
+            '<button class="btn btn-sm btn-outline-secondary' + nextDisabled + '" id="ssv-meet-next">Siguiente \u203a</button>';
+
+        var prevBtn = document.getElementById('ssv-meet-prev');
+        if (prevBtn && page > 1) {
+            prevBtn.addEventListener('click', function() {
+                loadPage(page - 1, currentSearch);
             });
+        }
+        var nextBtn = document.getElementById('ssv-meet-next');
+        if (nextBtn && page < totalPages) {
+            nextBtn.addEventListener('click', function() {
+                loadPage(page + 1, currentSearch);
+            });
+        }
+    }
+
+    function loadPage(page, search) {
+        currentPage = page;
+        currentSearch = search;
+        showSpinner();
+
+        var url = apiUrl + '/api/moodle/meetings?page=' + page + '&per_page=20';
+        if (search) { url += '&search=' + encodeURIComponent(search); }
+
+        fetch(url, {headers: {'Authorization': 'Bearer ' + pluginKey}})
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            hideSpinner();
+            var meetings = data.meetings || [];
+            var total = data.total || 0;
+            var totalPages = data.total_pages || 1;
+
+            var tbody = document.getElementById('ssv-meetings-tbody');
+            var count = document.getElementById('ssv-meetings-count');
+            var container = document.getElementById('ssv-meetings-container');
+
+            if (count) { count.textContent = total + ' reuni\u00f3n(es) encontrada(s).'; }
+            renderPagination(page, totalPages);
+
+            if (!tbody) { return; }
+
+            if (meetings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No hay reuniones recientes</td></tr>';
+            } else {
+                tbody.innerHTML = meetings.map(function(m) {
+                    var date = m.started_at ? new Date(m.started_at * 1000).toLocaleString() : '\u2014';
+                    var dur = m.duration_seconds ? Math.round(m.duration_seconds / 60) + ' min' : '\u2014';
+                    var parts = m.participant_count !== undefined ? m.participant_count : '\u2014';
+                    return '<tr><td>' + (m.name || '\u2014') + '</td><td>' + date + '</td><td>' +
+                        dur + '</td><td>' + parts + '</td></tr>';
+                }).join('');
+            }
+
+            if (container) { container.classList.remove('d-none'); }
+        })
+        .catch(function() {
+            hideSpinner();
+            var err = document.getElementById('ssv-meetings-error');
+            if (err) { err.classList.remove('d-none'); }
+        });
+    }
+
+    return {
+        init: function(url, key) {
+            apiUrl = url;
+            pluginKey = key;
+
+            var searchInput = document.getElementById('ssv-meetings-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(debounceTimer);
+                    var val = searchInput.value;
+                    debounceTimer = setTimeout(function() {
+                        loadPage(1, val);
+                    }, 400);
+                });
+            }
+
+            loadPage(1, '');
         }
     };
 });

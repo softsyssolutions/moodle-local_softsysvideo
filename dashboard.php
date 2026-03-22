@@ -41,6 +41,7 @@ $tenantname  = get_config('local_softsysvideo', 'softsysvideo_tenant_name') ?: '
 
 if ($isconnected) {
     $PAGE->requires->js_call_amd('local_softsysvideo/dashboard', 'init', [$apiurl, $pluginkey]);
+    $PAGE->requires->js_call_amd('local_softsysvideo/analytics', 'init', [$apiurl, $pluginkey]);
 }
 
 echo $OUTPUT->header();
@@ -112,6 +113,33 @@ echo $OUTPUT->header();
       </div>
     </div>
     <div id="ssv-stats-error" class="alert alert-danger d-none"><?php echo get_string('request_failed', 'local_softsysvideo'); ?></div>
+
+    <!-- Analytics Charts -->
+    <h4 class="mt-4 mb-3"><?php echo get_string('usage_over_time', 'local_softsysvideo'); ?></h4>
+    <div id="ssv-analytics-spinner" class="text-center py-3">
+      <div class="spinner-border text-primary" role="status"></div>
+    </div>
+    <div id="ssv-analytics-error" class="alert alert-warning d-none">
+      <?php echo get_string('analytics_unavailable', 'local_softsysvideo'); ?>
+    </div>
+    <div class="row g-3 mb-4" id="ssv-charts-row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h6 class="card-title"><?php echo get_string('sessions_over_time', 'local_softsysvideo'); ?></h6>
+            <canvas id="ssv-chart-meetings" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h6 class="card-title"><?php echo get_string('minutes_consumed', 'local_softsysvideo'); ?></h6>
+            <canvas id="ssv-chart-minutes" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Quick links -->
     <div class="row g-3">

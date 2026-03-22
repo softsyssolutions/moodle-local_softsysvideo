@@ -69,8 +69,18 @@ echo $OUTPUT->header();
     ); ?>
   <?php else: ?>
 
-    <div id="ssv-recordings-loading" class="text-muted">Cargando grabaciones...</div>
     <div id="ssv-recordings-error" class="alert alert-danger d-none"><?php echo get_string('request_failed', 'local_softsysvideo'); ?></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <input type="text" id="ssv-recordings-search" class="form-control w-auto"
+             placeholder="<?php echo get_string('search'); ?>..." style="max-width:250px">
+      <div id="ssv-recordings-pagination" class="d-flex gap-2 align-items-center"></div>
+    </div>
+    <div id="ssv-recordings-spinner" class="text-center py-3">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden"><?php echo get_string('loading', 'local_softsysvideo'); ?></span>
+      </div>
+    </div>
 
     <div id="ssv-recordings-container" class="d-none">
       <div class="table-responsive">
