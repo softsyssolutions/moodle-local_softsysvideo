@@ -184,7 +184,8 @@ if ($message) {
 if ($isconnected) {
     // Connected state card.
     $orgrow = html_writer::tag('p', html_writer::tag('strong', 'Organización:') . ' ' . htmlspecialchars($tenantname ?: '—'));
-    $apirow = html_writer::tag('p', html_writer::tag('strong', 'API URL:') . ' ' . html_writer::tag('code', htmlspecialchars($apiurl)));
+    $apicodehtml = html_writer::tag('code', htmlspecialchars($apiurl));
+    $apirow = html_writer::tag('p', html_writer::tag('strong', 'API URL:') . ' ' . $apicodehtml);
     $confirmstr = get_string('confirm_disconnect', 'local_softsysvideo');
     $disconnectbtn = html_writer::tag(
         'button',

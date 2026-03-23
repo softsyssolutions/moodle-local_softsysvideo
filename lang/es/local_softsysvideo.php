@@ -24,12 +24,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['analytics_unavailable'] = 'Datos de analíticas no disponibles.';
+$string['analytics_unavailable'] = 'Datos de analiticas no disponibles.';
 $string['api_url'] = 'URL del API de SoftSys Video';
 $string['api_url_help'] = 'Ingrese la URL del subdominio del tenant para su API Worker de SoftSys Video.';
 $string['balance_warning'] = 'El saldo esta por debajo de $5. Agregue creditos para evitar interrupciones.';
 $string['bbb_configured'] = 'BigBlueButton fue configurado para SoftSys Video.';
 $string['bbb_not_installed'] = 'El modulo de actividad BigBlueButton no esta instalado.';
+$string['confirm_disconnect'] = 'Desconectar este Moodle de la plataforma de videoconferencia?';
 $string['connect'] = 'Conectar';
 $string['connect_account'] = 'Conectar cuenta';
 $string['connect_endpoint'] = 'Endpoint de conexion (avanzado)';
@@ -40,7 +41,6 @@ $string['connection_failed'] = 'La conexion fallo.';
 $string['connection_server_error'] = 'No se pudo conectar al servidor. Verifique su conexion.';
 $string['connection_success'] = 'Conexion exitosa.';
 $string['connection_success_detail'] = 'Conectado exitosamente a {$a}.';
-$string['confirm_disconnect'] = 'Desconectar este Moodle de la plataforma de videoconferencia?';
 $string['credits_balance'] = 'Saldo de creditos';
 $string['current_bbb_server'] = 'Servidor BBB actual';
 $string['dashboard'] = 'Panel de control';
