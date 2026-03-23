@@ -35,9 +35,9 @@ $PAGE->set_heading(get_string('pluginname', 'local_softsysvideo'));
 $PAGE->set_pagelayout('admin');
 
 $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
-$apiurl      = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: 'https://api.softsysvideo.com';
-$pluginkey   = get_config('local_softsysvideo', 'softsysvideo_plugin_key') ?: '';
-$tenantname  = get_config('local_softsysvideo', 'softsysvideo_tenant_name') ?: 'SoftSys Video';
+$apiurl = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: 'https://api.softsysvideo.com';
+$pluginkey = get_config('local_softsysvideo', 'softsysvideo_plugin_key') ?: '';
+$tenantname = get_config('local_softsysvideo', 'softsysvideo_tenant_name') ?: 'SoftSys Video';
 
 if ($isconnected) {
     $PAGE->requires->js_call_amd('local_softsysvideo/dashboard', 'init', [$apiurl, $pluginkey]);
@@ -71,146 +71,120 @@ $navlinks[] = html_writer::link(
     get_string('support', 'local_softsysvideo'),
     ['class' => 'btn btn-sm btn-outline-danger']
 );
-$navhtml = html_writer::div(
-    implode('', $navlinks),
-    'd-flex gap-2 mb-3 flex-wrap'
-);
+$navhtml = html_writer::div(implode('', $navlinks), 'd-flex gap-2 mb-3 flex-wrap');
 
 echo $OUTPUT->header();
-?>
+echo html_writer::start_div('container-fluid py-3');
+echo $navhtml;
 
-<div class="container-fluid py-3">
-
-  <!-- Plugin nav -->
-  <?php echo $navhtml; ?>
-
-  <?php if (!$isconnected): ?>
-    <?php echo $OUTPUT->notification(
+if (!$isconnected) {
+    echo $OUTPUT->notification(
         get_string('not_connected', 'local_softsysvideo') . ' ' .
         html_writer::link(
             new moodle_url('/local/softsysvideo/connect.php'),
             get_string('connect_account', 'local_softsysvideo')
         ),
         \core\output\notification::NOTIFY_WARNING
-    ); ?>
-  <?php else: ?>
+    );
+} else {
+    // Header section.
+    $badgetext = get_string('connected', 'local_softsysvideo') . ' &mdash; ' . htmlspecialchars($tenantname);
+    $badge = html_writer::tag('span', $badgetext, ['class' => 'badge bg-success', 'id' => 'ssv-tenant-name']);
+    $headercontent = html_writer::tag('h2', get_string('dashboard', 'local_softsysvideo'), ['class' => 'mb-0']);
+    $headercontent .= $badge;
+    echo html_writer::div(
+        html_writer::div($headercontent, ''),
+        'd-flex align-items-center gap-3 mb-4'
+    );
 
-    <!-- Header -->
-    <div class="d-flex align-items-center gap-3 mb-4">
-      <div>
-        <h2 class="mb-0"><?php echo get_string('dashboard', 'local_softsysvideo'); ?></h2>
-        <?php
-        $badgetext  = get_string('connected', 'local_softsysvideo') . ' &mdash; ';
-        $badgetext .= htmlspecialchars($tenantname);
-        ?>
-        <span class="badge bg-success" id="ssv-tenant-name"><?php echo $badgetext; ?></span>
-      </div>
-    </div>
+    // Stats cards.
+    $statcard = function($id, $colorclass, $labelkey) {
+        $inner = html_writer::div('&mdash;', 'display-6 fw-bold ' . $colorclass, ['id' => $id]);
+        $inner .= html_writer::div(get_string($labelkey, 'local_softsysvideo'), 'text-muted small mt-1');
+        return html_writer::div(
+            html_writer::div($inner, 'card-body'),
+            'card text-center h-100'
+        );
+    };
+    $statsrow = html_writer::div(
+        html_writer::div($statcard('ssv-stat-meetings', 'text-primary', 'this_month_meetings'), 'col-6 col-md-3') .
+        html_writer::div($statcard('ssv-stat-hours', 'text-info', 'video_hours'), 'col-6 col-md-3') .
+        html_writer::div($statcard('ssv-stat-participants', 'text-warning', 'total_participants'), 'col-6 col-md-3') .
+        html_writer::div($statcard('ssv-stat-recordings', 'text-success', 'total_recordings'), 'col-6 col-md-3'),
+        'row g-3 mb-4'
+    );
+    echo $statsrow;
 
-    <!-- Stats cards -->
-    <div class="row g-3 mb-4">
-      <div class="col-6 col-md-3">
-        <div class="card text-center h-100">
-          <div class="card-body">
-            <div class="display-6 fw-bold text-primary" id="ssv-stat-meetings">&mdash;</div>
-            <div class="text-muted small mt-1"><?php echo get_string('this_month_meetings', 'local_softsysvideo'); ?></div>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card text-center h-100">
-          <div class="card-body">
-            <div class="display-6 fw-bold text-info" id="ssv-stat-hours">&mdash;</div>
-            <div class="text-muted small mt-1"><?php echo get_string('video_hours', 'local_softsysvideo'); ?></div>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card text-center h-100">
-          <div class="card-body">
-            <div class="display-6 fw-bold text-warning" id="ssv-stat-participants">&mdash;</div>
-            <div class="text-muted small mt-1"><?php echo get_string('total_participants', 'local_softsysvideo'); ?></div>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card text-center h-100">
-          <div class="card-body">
-            <div class="display-6 fw-bold text-success" id="ssv-stat-recordings">&mdash;</div>
-            <div class="text-muted small mt-1"><?php echo get_string('total_recordings', 'local_softsysvideo'); ?></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <?php
     echo html_writer::div(
         get_string('request_failed', 'local_softsysvideo'),
         'alert alert-danger d-none',
         ['id' => 'ssv-stats-error']
     );
-    ?>
 
-    <!-- Analytics Charts -->
-    <h4 class="mt-4 mb-3"><?php echo get_string('usage_over_time', 'local_softsysvideo'); ?></h4>
-    <div id="ssv-analytics-spinner" class="text-center py-3">
-      <div class="spinner-border text-primary" role="status"></div>
-    </div>
-    <div id="ssv-analytics-error" class="alert alert-warning d-none">
-      <?php echo get_string('analytics_unavailable', 'local_softsysvideo'); ?>
-    </div>
-    <div class="row g-3 mb-4" id="ssv-charts-row">
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-body">
-            <h6 class="card-title"><?php echo get_string('sessions_over_time', 'local_softsysvideo'); ?></h6>
-            <canvas id="ssv-chart-meetings" height="200"></canvas>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-body">
-            <h6 class="card-title"><?php echo get_string('minutes_consumed', 'local_softsysvideo'); ?></h6>
-            <canvas id="ssv-chart-minutes" height="200"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
+    // Analytics charts.
+    echo html_writer::tag('h4', get_string('usage_over_time', 'local_softsysvideo'), ['class' => 'mt-4 mb-3']);
+    echo html_writer::div(
+        html_writer::div('', 'spinner-border text-primary', ['role' => 'status']),
+        'text-center py-3',
+        ['id' => 'ssv-analytics-spinner']
+    );
+    echo html_writer::div(
+        get_string('analytics_unavailable', 'local_softsysvideo'),
+        'alert alert-warning d-none',
+        ['id' => 'ssv-analytics-error']
+    );
 
-    <!-- Quick links -->
-    <div class="row g-3">
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title"><?php echo get_string('recordings', 'local_softsysvideo'); ?></h5>
-            <p class="card-text text-muted">Accede a todas las grabaciones de tus reuniones.</p>
-            <?php echo $OUTPUT->single_button(
-                new moodle_url('/local/softsysvideo/recordings.php'),
-                get_string('recordings', 'local_softsysvideo'),
-                'get',
-                ['class' => 'btn-outline-primary']
-            ); ?>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title"><?php echo get_string('meetings', 'local_softsysvideo'); ?></h5>
-            <p class="card-text text-muted">Revisa el historial de reuniones del tenant.</p>
-            <?php echo $OUTPUT->single_button(
-                new moodle_url('/local/softsysvideo/meetings.php'),
-                get_string('meetings', 'local_softsysvideo'),
-                'get',
-                ['class' => 'btn-outline-primary']
-            ); ?>
-          </div>
-        </div>
-      </div>
-    </div>
+    $chart1 = html_writer::div(
+        html_writer::div(
+            html_writer::tag('h6', get_string('sessions_over_time', 'local_softsysvideo'), ['class' => 'card-title']) .
+            html_writer::tag('canvas', '', ['id' => 'ssv-chart-meetings', 'height' => '200']),
+            'card-body'
+        ),
+        'card'
+    );
+    $chart2 = html_writer::div(
+        html_writer::div(
+            html_writer::tag('h6', get_string('minutes_consumed', 'local_softsysvideo'), ['class' => 'card-title']) .
+            html_writer::tag('canvas', '', ['id' => 'ssv-chart-minutes', 'height' => '200']),
+            'card-body'
+        ),
+        'card'
+    );
+    echo html_writer::div(
+        html_writer::div($chart1, 'col-md-6') . html_writer::div($chart2, 'col-md-6'),
+        'row g-3 mb-4',
+        ['id' => 'ssv-charts-row']
+    );
 
-  <?php endif; ?>
-</div>
+    // Quick links.
+    $reccard = html_writer::div(
+        html_writer::tag('h5', get_string('recordings', 'local_softsysvideo'), ['class' => 'card-title']) .
+        html_writer::tag('p', get_string('recordings_desc', 'local_softsysvideo'), ['class' => 'card-text text-muted']) .
+        $OUTPUT->single_button(
+            new moodle_url('/local/softsysvideo/recordings.php'),
+            get_string('recordings', 'local_softsysvideo'),
+            'get',
+            ['class' => 'btn-outline-primary']
+        ),
+        'card-body'
+    );
+    $meetcard = html_writer::div(
+        html_writer::tag('h5', get_string('meetings', 'local_softsysvideo'), ['class' => 'card-title']) .
+        html_writer::tag('p', get_string('meetings_desc', 'local_softsysvideo'), ['class' => 'card-text text-muted']) .
+        $OUTPUT->single_button(
+            new moodle_url('/local/softsysvideo/meetings.php'),
+            get_string('meetings', 'local_softsysvideo'),
+            'get',
+            ['class' => 'btn-outline-primary']
+        ),
+        'card-body'
+    );
+    echo html_writer::div(
+        html_writer::div(html_writer::div($reccard, 'card'), 'col-md-6') .
+        html_writer::div(html_writer::div($meetcard, 'card'), 'col-md-6'),
+        'row g-3'
+    );
+}
 
-<?php
+echo html_writer::end_div();
 echo $OUTPUT->footer();

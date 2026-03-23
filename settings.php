@@ -28,23 +28,22 @@ if ($hassiteconfig) {
     $settings = new admin_settingpage('local_softsysvideo', get_string('pluginname', 'local_softsysvideo'));
 
     if ($ADMIN->fulltree) {
-
-        $apiurl      = get_config('local_softsysvideo', 'softsysvideo_api_url');
-        $pluginkey   = get_config('local_softsysvideo', 'softsysvideo_plugin_key');
-        $tenantname  = get_config('local_softsysvideo', 'softsysvideo_tenant_name');
+        $apiurl = get_config('local_softsysvideo', 'softsysvideo_api_url');
+        $pluginkey = get_config('local_softsysvideo', 'softsysvideo_plugin_key');
+        $tenantname = get_config('local_softsysvideo', 'softsysvideo_tenant_name');
         $isconnected = !empty($apiurl) && !empty($pluginkey);
 
-        $wwwroot      = $CFG->wwwroot;
-        $connecturl   = $wwwroot . '/local/softsysvideo/connect.php';
+        $wwwroot = $CFG->wwwroot;
+        $connecturl = $wwwroot . '/local/softsysvideo/connect.php';
         $dashboardurl = $wwwroot . '/local/softsysvideo/dashboard.php';
-        $supporturl   = $wwwroot . '/local/softsysvideo/support.php';
+        $supporturl = $wwwroot . '/local/softsysvideo/support.php';
 
         if ($isconnected) {
             $connhtml = '
 <div class="card border-success mb-3">
   <div class="card-header bg-success text-white fw-bold">' .
-    get_string('connected', 'local_softsysvideo') . ': ' .
-    htmlspecialchars($tenantname ?: '—') . '</div>
+            get_string('connected', 'local_softsysvideo') . ': ' .
+            htmlspecialchars($tenantname ?: '—') . '</div>
   <div class="card-body p-3">
     <p class="mb-2"><strong>Organización:</strong> ' . htmlspecialchars($tenantname ?: '—') . '</p>
     <div id="ssv-stats-container">
@@ -108,7 +107,7 @@ if ($hassiteconfig) {
             $connhtml
         ));
 
-        // Advanced config fields (hidden, but needed for Moodle to store them)
+        // Advanced config fields (hidden, but needed for Moodle to store them).
         $settings->add(new admin_setting_configtext(
             'local_softsysvideo/softsysvideo_api_url',
             get_string('api_url', 'local_softsysvideo'),
@@ -124,7 +123,7 @@ if ($hassiteconfig) {
             ''
         ));
 
-        // Endpoint override for dev/staging
+        // Endpoint override for dev/staging.
         $settings->add(new admin_setting_configtext(
             'local_softsysvideo/softsysvideo_connect_endpoint',
             get_string('connect_endpoint', 'local_softsysvideo'),

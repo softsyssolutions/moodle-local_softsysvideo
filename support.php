@@ -37,30 +37,30 @@ $PAGE->set_heading(get_string('support', 'local_softsysvideo'));
 
 $action = optional_param('action', '', PARAM_ALPHA);
 
-// AJAX: enviar ticket por email al admin del sitio
+// AJAX: send support ticket email to the Moodle site admin.
 if ($action === 'submit') {
     header('Content-Type: application/json');
     require_sesskey();
 
-    $subject     = required_param('subject', PARAM_TEXT);
+    $subject = required_param('subject', PARAM_TEXT);
     $description = required_param('description', PARAM_TEXT);
-    $courseId    = optional_param('course_id', '', PARAM_TEXT);
+    $course_id = optional_param('course_id', '', PARAM_TEXT);
 
     $admin = get_admin();
-    $from  = $USER;
+    $from = $USER;
 
-    $messagetext  = strip_tags($description) . "\n\n";
+    $messagetext = strip_tags($description) . "\n\n";
     $messagetext .= "Moodle: {$CFG->wwwroot}\n";
     $messagetext .= "Plugin: local_softsysvideo\n";
-    if ($courseId) {
-        $messagetext .= "Course ID: {$courseId}\n";
+    if ($course_id) {
+        $messagetext .= "Course ID: {$course_id}\n";
     }
 
-    $messagehtml  = html_writer::tag('p', format_text($description, FORMAT_PLAIN));
+    $messagehtml = html_writer::tag('p', format_text($description, FORMAT_PLAIN));
     $messagehtml .= html_writer::tag('p', 'Moodle: ' . $CFG->wwwroot);
     $messagehtml .= html_writer::tag('p', 'Plugin: local_softsysvideo');
-    if ($courseId) {
-        $messagehtml .= html_writer::tag('p', 'Course ID: ' . s($courseId));
+    if ($course_id) {
+        $messagehtml .= html_writer::tag('p', 'Course ID: ' . s($course_id));
     }
 
     $result = email_to_user(

@@ -24,8 +24,6 @@
 
 namespace local_softsysvideo\privacy;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Privacy provider for a plugin that does not store personal data in phase 1.
  */

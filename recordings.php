@@ -35,8 +35,8 @@ $PAGE->set_heading(get_string('pluginname', 'local_softsysvideo'));
 $PAGE->set_pagelayout('admin');
 
 $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
-$apiurl      = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: 'https://api.softsysvideo.com';
-$pluginkey   = get_config('local_softsysvideo', 'softsysvideo_plugin_key') ?: '';
+$apiurl = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: 'https://api.softsysvideo.com';
+$pluginkey = get_config('local_softsysvideo', 'softsysvideo_plugin_key') ?: '';
 
 if ($isconnected) {
     $PAGE->requires->js_call_amd('local_softsysvideo/recordings', 'init', [$apiurl, $pluginkey]);
@@ -69,73 +69,67 @@ $navlinks[] = html_writer::link(
     get_string('support', 'local_softsysvideo'),
     ['class' => 'btn btn-sm btn-outline-danger']
 );
-$navhtml = html_writer::div(
-    implode('', $navlinks),
-    'd-flex gap-2 mb-3 flex-wrap'
-);
+$navhtml = html_writer::div(implode('', $navlinks), 'd-flex gap-2 mb-3 flex-wrap');
 
 echo $OUTPUT->header();
-?>
 
-<div class="container-fluid py-3">
+echo html_writer::start_div('container-fluid py-3');
+echo $navhtml;
+echo html_writer::tag('h2', get_string('recordings', 'local_softsysvideo'));
 
-  <!-- Plugin nav -->
-  <?php echo $navhtml; ?>
-
-  <h2><?php echo get_string('recordings', 'local_softsysvideo'); ?></h2>
-
-  <?php if (!$isconnected): ?>
-    <?php echo $OUTPUT->notification(
+if (!$isconnected) {
+    echo $OUTPUT->notification(
         get_string('not_connected', 'local_softsysvideo') . ' ' .
         html_writer::link(
             new moodle_url('/local/softsysvideo/connect.php'),
             get_string('connect_account', 'local_softsysvideo')
         ),
         \core\output\notification::NOTIFY_WARNING
-    ); ?>
-  <?php else: ?>
-
-    <?php
+    );
+} else {
     echo html_writer::div(
         get_string('request_failed', 'local_softsysvideo'),
         'alert alert-danger d-none',
         ['id' => 'ssv-recordings-error']
     );
-    ?>
 
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <input type="text" id="ssv-recordings-search" class="form-control w-auto"
-             placeholder="<?php echo get_string('search'); ?>..." style="max-width:250px">
-      <div id="ssv-recordings-pagination" class="d-flex gap-2 align-items-center"></div>
-    </div>
-    <div id="ssv-recordings-spinner" class="text-center py-3">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden"><?php echo get_string('loading', 'local_softsysvideo'); ?></span>
-      </div>
-    </div>
+    $searchinput = html_writer::empty_tag('input', [
+        'type' => 'text',
+        'id' => 'ssv-recordings-search',
+        'class' => 'form-control w-auto',
+        'placeholder' => get_string('search') . '...',
+        'style' => 'max-width:250px',
+    ]);
+    $pagination = html_writer::div('', 'd-flex gap-2 align-items-center', ['id' => 'ssv-recordings-pagination']);
+    echo html_writer::div(
+        $searchinput . $pagination,
+        'd-flex justify-content-between align-items-center mb-2'
+    );
 
-    <div id="ssv-recordings-container" class="d-none">
-      <div class="table-responsive">
-        <table class="table table-striped table-hover">
-          <thead class="table-dark">
-            <tr>
-              <th><?php echo get_string('recording_name', 'local_softsysvideo'); ?></th>
-              <th><?php echo get_string('meeting', 'local_softsysvideo'); ?></th>
-              <th><?php echo get_string('date', 'local_softsysvideo'); ?></th>
-              <th><?php echo get_string('duration', 'local_softsysvideo'); ?></th>
-              <th><?php echo get_string('size', 'local_softsysvideo'); ?></th>
-              <th><?php echo get_string('play', 'local_softsysvideo'); ?></th>
-            </tr>
-          </thead>
-          <tbody id="ssv-recordings-tbody">
-          </tbody>
-        </table>
-      </div>
-      <p class="text-muted small" id="ssv-recordings-count"></p>
-    </div>
+    $spinner = html_writer::div(
+        html_writer::div(
+            html_writer::tag('span', get_string('loading', 'local_softsysvideo'), ['class' => 'visually-hidden']),
+            'spinner-border text-primary',
+            ['role' => 'status']
+        ),
+        'text-center py-3',
+        ['id' => 'ssv-recordings-spinner']
+    );
+    echo $spinner;
 
-  <?php endif; ?>
-</div>
+    $th = html_writer::tag('th', get_string('recording_name', 'local_softsysvideo'));
+    $th .= html_writer::tag('th', get_string('meeting', 'local_softsysvideo'));
+    $th .= html_writer::tag('th', get_string('date', 'local_softsysvideo'));
+    $th .= html_writer::tag('th', get_string('duration', 'local_softsysvideo'));
+    $th .= html_writer::tag('th', get_string('size', 'local_softsysvideo'));
+    $th .= html_writer::tag('th', get_string('play', 'local_softsysvideo'));
+    $thead = html_writer::tag('thead', html_writer::tag('tr', $th), ['class' => 'table-dark']);
+    $tbody = html_writer::tag('tbody', '', ['id' => 'ssv-recordings-tbody']);
+    $table = html_writer::tag('table', $thead . $tbody, ['class' => 'table table-striped table-hover']);
+    $tablehtml = html_writer::div($table, 'table-responsive');
+    $counthtml = html_writer::tag('p', '', ['class' => 'text-muted small', 'id' => 'ssv-recordings-count']);
+    echo html_writer::div($tablehtml . $counthtml, 'd-none', ['id' => 'ssv-recordings-container']);
+}
 
-<?php
+echo html_writer::end_div();
 echo $OUTPUT->footer();
