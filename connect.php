@@ -109,7 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             curl_close($ch);
 
             if ($httpCode === 0 || !empty($curlError)) {
-                $message     = get_string('connection_server_error', 'local_softsysvideo') . ' ' . htmlspecialchars($curlError ?: '');
+                $message     = get_string('connection_server_error', 'local_softsysvideo')
+                    . ' ' . htmlspecialchars($curlError ?: '');
                 $messageType = 'danger';
             } else {
                 $data = json_decode($response, true);
@@ -138,21 +139,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
     }
 }
 
+// Build plugin navigation.
+$navlinks = [];
+$navlinks[] = html_writer::link(
+    new moodle_url('/local/softsysvideo/dashboard.php'),
+    get_string('dashboard', 'local_softsysvideo'),
+    ['class' => 'btn btn-sm btn-outline-primary']
+);
+$navlinks[] = html_writer::link(
+    new moodle_url('/local/softsysvideo/recordings.php'),
+    get_string('recordings', 'local_softsysvideo'),
+    ['class' => 'btn btn-sm btn-outline-secondary']
+);
+$navlinks[] = html_writer::link(
+    new moodle_url('/local/softsysvideo/meetings.php'),
+    get_string('meetings', 'local_softsysvideo'),
+    ['class' => 'btn btn-sm btn-outline-secondary']
+);
+$navlinks[] = html_writer::link(
+    new moodle_url('/local/softsysvideo/connect.php'),
+    get_string('connection', 'local_softsysvideo'),
+    ['class' => 'btn btn-sm btn-secondary']
+);
+$navlinks[] = html_writer::link(
+    new moodle_url('/local/softsysvideo/support.php'),
+    get_string('support', 'local_softsysvideo'),
+    ['class' => 'btn btn-sm btn-outline-danger']
+);
+$navhtml = html_writer::div(
+    implode('', $navlinks),
+    'd-flex gap-2 mb-3 flex-wrap'
+);
+
 echo $OUTPUT->header();
 ?>
 
 <div class="container-fluid py-3" style="max-width:700px">
 
   <!-- Plugin nav -->
-  <div class="d-flex gap-2 mb-3 flex-wrap">
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/dashboard.php" class="btn btn-sm btn-outline-primary">📊 Dashboard</a>
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/recordings.php" class="btn btn-sm btn-outline-secondary">🎬 Grabaciones</a>
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/meetings.php" class="btn btn-sm btn-outline-secondary">📅 Reuniones</a>
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/connect.php" class="btn btn-sm btn-secondary">🔌 Conexión</a>
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/support.php" class="btn btn-sm btn-outline-danger">🆘 Soporte</a>
-  </div>
+  <?php echo $navhtml; ?>
 
-  <h2>🔌 <?php echo get_string('connection', 'local_softsysvideo'); ?></h2>
+  <h2><?php echo get_string('connection', 'local_softsysvideo'); ?></h2>
 
   <?php if ($message): ?>
     <div class="alert alert-<?php echo $messageType; ?>"><?php echo htmlspecialchars($message); ?></div>

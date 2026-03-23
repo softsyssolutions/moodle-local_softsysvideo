@@ -44,20 +44,45 @@ if ($isconnected) {
     $PAGE->requires->js_call_amd('local_softsysvideo/analytics', 'init', [$apiurl, $pluginkey]);
 }
 
+// Build plugin navigation.
+$navlinks = [];
+$navlinks[] = html_writer::link(
+    new moodle_url('/local/softsysvideo/dashboard.php'),
+    get_string('dashboard', 'local_softsysvideo'),
+    ['class' => 'btn btn-sm btn-primary']
+);
+$navlinks[] = html_writer::link(
+    new moodle_url('/local/softsysvideo/recordings.php'),
+    get_string('recordings', 'local_softsysvideo'),
+    ['class' => 'btn btn-sm btn-outline-secondary']
+);
+$navlinks[] = html_writer::link(
+    new moodle_url('/local/softsysvideo/meetings.php'),
+    get_string('meetings', 'local_softsysvideo'),
+    ['class' => 'btn btn-sm btn-outline-secondary']
+);
+$navlinks[] = html_writer::link(
+    new moodle_url('/local/softsysvideo/connect.php'),
+    get_string('connection', 'local_softsysvideo'),
+    ['class' => 'btn btn-sm btn-outline-secondary']
+);
+$navlinks[] = html_writer::link(
+    new moodle_url('/local/softsysvideo/support.php'),
+    get_string('support', 'local_softsysvideo'),
+    ['class' => 'btn btn-sm btn-outline-danger']
+);
+$navhtml = html_writer::div(
+    implode('', $navlinks),
+    'd-flex gap-2 mb-3 flex-wrap'
+);
+
 echo $OUTPUT->header();
 ?>
 
 <div class="container-fluid py-3">
 
   <!-- Plugin nav -->
-  <div class="d-flex gap-2 mb-3 flex-wrap">
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/dashboard.php" class="btn btn-sm btn-primary">Dashboard</a>
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/recordings.php"
-       class="btn btn-sm btn-outline-secondary"><?php echo get_string('recordings', 'local_softsysvideo'); ?></a>
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/meetings.php" class="btn btn-sm btn-outline-secondary"><?php echo get_string('meetings', 'local_softsysvideo'); ?></a>
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/connect.php" class="btn btn-sm btn-outline-secondary"><?php echo get_string('connection', 'local_softsysvideo'); ?></a>
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/support.php" class="btn btn-sm btn-outline-danger"><?php echo get_string('support', 'local_softsysvideo'); ?></a>
-  </div>
+  <?php echo $navhtml; ?>
 
   <?php if (!$isconnected): ?>
     <?php echo $OUTPUT->notification(
@@ -74,7 +99,11 @@ echo $OUTPUT->header();
     <div class="d-flex align-items-center gap-3 mb-4">
       <div>
         <h2 class="mb-0"><?php echo get_string('dashboard', 'local_softsysvideo'); ?></h2>
-        <span class="badge bg-success" id="ssv-tenant-name"><?php echo get_string('connected', 'local_softsysvideo'); ?> &mdash; <?php echo htmlspecialchars($tenantname); ?></span>
+        <?php
+        $badgetext  = get_string('connected', 'local_softsysvideo') . ' &mdash; ';
+        $badgetext .= htmlspecialchars($tenantname);
+        ?>
+        <span class="badge bg-success" id="ssv-tenant-name"><?php echo $badgetext; ?></span>
       </div>
     </div>
 
@@ -113,7 +142,13 @@ echo $OUTPUT->header();
         </div>
       </div>
     </div>
-    <div id="ssv-stats-error" class="alert alert-danger d-none"><?php echo get_string('request_failed', 'local_softsysvideo'); ?></div>
+    <?php
+    echo html_writer::div(
+        get_string('request_failed', 'local_softsysvideo'),
+        'alert alert-danger d-none',
+        ['id' => 'ssv-stats-error']
+    );
+    ?>
 
     <!-- Analytics Charts -->
     <h4 class="mt-4 mb-3"><?php echo get_string('usage_over_time', 'local_softsysvideo'); ?></h4>

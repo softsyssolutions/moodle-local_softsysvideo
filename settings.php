@@ -42,7 +42,9 @@ if ($hassiteconfig) {
         if ($isconnected) {
             $connhtml = '
 <div class="card border-success mb-3">
-  <div class="card-header bg-success text-white fw-bold">🟢 ' . get_string('connected', 'local_softsysvideo') . ': ' . htmlspecialchars($tenantname ?: '—') . '</div>
+  <div class="card-header bg-success text-white fw-bold">' .
+    get_string('connected', 'local_softsysvideo') . ': ' .
+    htmlspecialchars($tenantname ?: '—') . '</div>
   <div class="card-body p-3">
     <p class="mb-2"><strong>Organización:</strong> ' . htmlspecialchars($tenantname ?: '—') . '</p>
     <div id="ssv-stats-container">
@@ -81,7 +83,8 @@ if ($hassiteconfig) {
         document.getElementById(\'ssv-stats-container\').innerHTML = html;
     })
     .catch(function() {
-        document.getElementById(\'ssv-stats-container\').innerHTML = \'<p class="text-muted small">No se pudieron cargar las estadísticas.</p>\';
+        var errMsg = \'<p class="text-muted small">No se pudieron cargar las estadísticas.</p>\';
+        document.getElementById(\'ssv-stats-container\').innerHTML = errMsg;
     });
 })();
 </script>';
