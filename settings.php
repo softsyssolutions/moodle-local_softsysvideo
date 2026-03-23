@@ -42,7 +42,7 @@ if ($hassiteconfig) {
         if ($isconnected) {
             $connhtml = '
 <div class="card border-success mb-3">
-  <div class="card-header bg-success text-white fw-bold">🟢 Conectado a SoftSys Video</div>
+  <div class="card-header bg-success text-white fw-bold">🟢 ' . get_string('connected', 'local_softsysvideo') . ': ' . htmlspecialchars($tenantname ?: '—') . '</div>
   <div class="card-body p-3">
     <p class="mb-2"><strong>Organización:</strong> ' . htmlspecialchars($tenantname ?: '—') . '</p>
     <div id="ssv-stats-container">
@@ -84,8 +84,8 @@ if ($hassiteconfig) {
     <span class="fs-4">🔴</span>
     <div>
       <strong>' . get_string('not_connected', 'local_softsysvideo') . '</strong>
-      <p class="mb-2 text-muted small">Conecta este Moodle con tu cuenta de SoftSys Video para habilitar videoconferencias.</p>
-      <a href="' . $connecturl . '" class="btn btn-primary">🔌 Conectar con SoftSys Video</a>
+      <p class="mb-2 text-muted small">' . get_string('connect_instructions', 'local_softsysvideo') . '</p>
+      <a href="' . $connecturl . '" class="btn btn-primary">🔌 ' . get_string('connect_account', 'local_softsysvideo') . '</a>
     </div>
   </div>
 </div>';
@@ -93,7 +93,7 @@ if ($hassiteconfig) {
 
         $settings->add(new admin_setting_heading(
             'local_softsysvideo/connectionstatus',
-            'Estado de conexión',
+            get_string('connection', 'local_softsysvideo'),
             $connhtml
         ));
 
@@ -116,8 +116,8 @@ if ($hassiteconfig) {
         // Endpoint override for dev/staging
         $settings->add(new admin_setting_configtext(
             'local_softsysvideo/softsysvideo_connect_endpoint',
-            'Endpoint de conexión (avanzado)',
-            'URL del endpoint de conexión. Dejar vacío para usar producción (https://api.softsysvideo.com/api/moodle/connect).',
+            get_string('connect_endpoint', 'local_softsysvideo'),
+            get_string('endpoint_help', 'local_softsysvideo'),
             '',
             PARAM_URL
         ));

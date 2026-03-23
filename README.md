@@ -1,53 +1,46 @@
-# local_softsysvideo
+# Video Conferencing Dashboard for Moodle
 
-`local_softsysvideo` is a Moodle companion plugin for [SoftSys Video](https://softsyssolutions.com). It connects your Moodle site to the SoftSys Video platform, providing a dashboard with usage stats, meeting history, recordings, and account management — all from within Moodle's admin interface.
+A Moodle companion plugin that integrates your Moodle site with a
+BigBlueButton-compatible video conferencing platform, providing a
+central dashboard with usage statistics, meeting history, and
+recording management — all within Moodle's admin interface.
 
 ## Features
 
-- **Dashboard** — Usage stats: meetings this month, video hours, total participants, recordings count.
-- **Recordings** — Paginated list of recordings with playback links.
-- **Meetings** — Recent meeting history with date, duration, and participant counts.
-- **Connect** — Authenticate your Moodle site against the SoftSys Video API using a Plugin API Key.
-- **Support** — Submit support requests directly from within Moodle.
+- **Dashboard** — Monthly usage stats: meetings, video hours, participants, recordings
+- **Analytics** — Usage trends with visual charts (sessions and minutes over time)
+- **Recordings** — Paginated, searchable list of recordings with playback links
+- **Meetings** — Meeting history with date, duration, and participant counts
+- **Connect** — Secure connection wizard using a Plugin API Key
 
 ## Requirements
 
-- Moodle 4.1 or newer
-- A SoftSys Video account at [app.softsysvideo.com](https://app.softsysvideo.com)
-- A tenant Plugin API Key (obtained from the SoftSys Video dashboard)
+- Moodle 4.1 or later
+- A compatible video conferencing platform account with plugin API access
 
 ## Installation
 
-### Upload ZIP
+### Method 1: Upload ZIP (recommended)
 
-1. Package this plugin as a zip file.
-2. Go to `Site administration → Plugins → Install plugins`.
-3. Upload the zip and complete the Moodle upgrade flow.
+1. Download or build the plugin as a ZIP file
+2. Go to `Site administration → Plugins → Install plugins`
+3. Upload the ZIP and follow the Moodle upgrade prompts
 
-### Manual (CLI)
+### Method 2: Manual
 
-1. Place the plugin folder in `{moodle_root}/local/softsysvideo/`.
-2. Run:
-
-```bash
-php admin/cli/upgrade.php
-```
+1. Copy the plugin folder to `{moodle_root}/local/softsysvideo/`
+2. Run: `php admin/cli/upgrade.php`
 
 ## Configuration
 
-1. Go to `Site administration → Local plugins → SoftSys Video`.
-2. Enter the **SoftSys Video API URL** (e.g. `https://api.softsysvideo.com`).
-3. Enter the **Plugin API Key** obtained from your SoftSys Video tenant dashboard.
-4. Navigate to the **Connect** page to authenticate your Moodle site.
-5. Once connected, the Dashboard, Recordings, and Meetings pages will display live data.
+1. Go to `Site administration → Local plugins → Video Conferencing Dashboard`
+2. Click **Connect** and enter your account credentials
+3. Once connected, the Dashboard, Recordings, and Meetings pages show live data
 
-## Getting Your Plugin API Key
+## Privacy
 
-1. Sign in at [https://app.softsysvideo.com](https://app.softsysvideo.com).
-2. Open your tenant settings.
-3. Generate a **Moodle Plugin API Key**.
-4. Copy the key into the plugin settings.
+This plugin does not store personal data. See `classes/privacy/provider.php`.
 
-## Support
+## License
 
-For issues or questions, visit the **Support** page inside the plugin, or contact us at [support@softsyssolutions.com](mailto:support@softsyssolutions.com).
+GNU GPL v3 or later. See [LICENSE](LICENSE) or <https://www.gnu.org/licenses/gpl-3.0.html>

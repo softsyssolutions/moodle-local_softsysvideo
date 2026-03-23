@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'SoftSys Video';
+$string['pluginname'] = 'Video Conferencing Dashboard';
 $string['connect'] = 'Connect';
 $string['connect_account'] = 'Connect account';
 $string['disconnect'] = 'Disconnect';
@@ -76,3 +76,10 @@ $string['page_x_of_y'] = 'Page {$a->current} of {$a->total}';
 $string['no_results'] = 'No results found.';
 $string['support_sent'] = 'Your support request has been sent.';
 $string['support_error'] = 'Failed to send support request. Please contact your administrator.';
+$string['connect_instructions'] = 'Enter your video conferencing account credentials to link this Moodle site.';
+$string['confirm_disconnect'] = 'Disconnect this Moodle site from the video conferencing platform?';
+$string['connection_success_detail'] = 'Successfully connected to {$a}.';
+$string['endpoint_help'] = 'Connection endpoint URL. Leave blank to use the default URL provided by your service.';
+$string['connect_endpoint'] = 'Connection endpoint (advanced)';
+$string['email_password_required'] = 'Please enter your email and password.';
+$string['connection_server_error'] = 'Could not connect to the video conferencing server. Please check your internet connection.';

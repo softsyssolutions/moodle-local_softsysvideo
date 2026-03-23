@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
         $password = required_param('password', PARAM_RAW_TRIMMED);
 
         if (empty($email) || empty($password)) {
-            $message     = 'Por favor ingresa tu email y contraseña.';
+            $message     = get_string('email_password_required', 'local_softsysvideo');
             $messageType = 'warning';
         } else {
             $moodleUrl = (new moodle_url('/'))->get_scheme() . '://' . $_SERVER['HTTP_HOST'];
@@ -109,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             curl_close($ch);
 
             if ($httpCode === 0 || !empty($curlError)) {
-                $message     = 'No se pudo conectar con el servidor de SoftSys Video. ' . htmlspecialchars($curlError ?: 'Verifica tu conexión a internet.');
+                $message     = get_string('connection_server_error', 'local_softsysvideo') . ' ' . htmlspecialchars($curlError ?: '');
                 $messageType = 'danger';
             } else {
                 $data = json_decode($response, true);
@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
 
                     redirect(
                         new moodle_url('/local/softsysvideo/dashboard.php'),
-                        '✅ Conectado correctamente a ' . htmlspecialchars($data['tenant_name'] ?: 'SoftSys Video') . '.',
+                        get_string('connection_success_detail', 'local_softsysvideo', htmlspecialchars($data['tenant_name'] ?? '')),
                         null,
                         \core\output\notification::NOTIFY_SUCCESS
                     );
@@ -152,7 +152,7 @@ echo $OUTPUT->header();
     <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/support.php" class="btn btn-sm btn-outline-danger">🆘 Soporte</a>
   </div>
 
-  <h2>🔌 Conexión con SoftSys Video</h2>
+  <h2>🔌 <?php echo get_string('connection', 'local_softsysvideo'); ?></h2>
 
   <?php if ($message): ?>
     <div class="alert alert-<?php echo $messageType; ?>"><?php echo htmlspecialchars($message); ?></div>
@@ -169,7 +169,7 @@ echo $OUTPUT->header();
           <input type="hidden" name="sesskey" value="<?php echo sesskey(); ?>">
           <input type="hidden" name="action" value="disconnect">
           <button type="submit" class="btn btn-outline-danger"
-            onclick="return confirm('¿Desconectar este Moodle de SoftSys Video?')">
+            onclick="return confirm('<?php echo get_string('confirm_disconnect', 'local_softsysvideo'); ?>')">
             🔌 Desconectar
           </button>
         </form>
@@ -181,7 +181,7 @@ echo $OUTPUT->header();
   <!-- Connect form -->
   <div class="card">
     <div class="card-body">
-      <p class="text-muted">Ingresa las credenciales de tu cuenta en <strong>app.softsysvideo.com</strong>.</p>
+      <p class="text-muted"><?php echo get_string('connect_instructions', 'local_softsysvideo'); ?></p>
       <form method="post" action="">
         <input type="hidden" name="sesskey" value="<?php echo sesskey(); ?>">
         <input type="hidden" name="action" value="connect">

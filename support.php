@@ -32,8 +32,8 @@ require_capability('local/softsysvideo:manage', context_system::instance());
 
 $PAGE->set_context(context_system::instance());
 $PAGE->set_url(new moodle_url('/local/softsysvideo/support.php'));
-$PAGE->set_title('Soporte SoftSys Video');
-$PAGE->set_heading('Soporte SoftSys Video');
+$PAGE->set_title(get_string('support', 'local_softsysvideo'));
+$PAGE->set_heading(get_string('support', 'local_softsysvideo'));
 
 $action = optional_param('action', '', PARAM_ALPHA);
 
@@ -66,7 +66,7 @@ if ($action === 'submit') {
     $result = email_to_user(
         $admin,
         $from,
-        '[SoftSys Video Support] ' . $subject,
+        '[' . get_string('pluginname', 'local_softsysvideo') . ' Support] ' . $subject,
         $messagetext,
         $messagehtml
     );
