@@ -52,7 +52,8 @@ echo $OUTPUT->header();
   <!-- Plugin nav -->
   <div class="d-flex gap-2 mb-3 flex-wrap">
     <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/dashboard.php" class="btn btn-sm btn-primary">Dashboard</a>
-    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/recordings.php" class="btn btn-sm btn-outline-secondary"><?php echo get_string('recordings', 'local_softsysvideo'); ?></a>
+    <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/recordings.php"
+       class="btn btn-sm btn-outline-secondary"><?php echo get_string('recordings', 'local_softsysvideo'); ?></a>
     <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/meetings.php" class="btn btn-sm btn-outline-secondary"><?php echo get_string('meetings', 'local_softsysvideo'); ?></a>
     <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/connect.php" class="btn btn-sm btn-outline-secondary"><?php echo get_string('connection', 'local_softsysvideo'); ?></a>
     <a href="<?php echo $CFG->wwwroot; ?>/local/softsysvideo/support.php" class="btn btn-sm btn-outline-danger"><?php echo get_string('support', 'local_softsysvideo'); ?></a>

@@ -65,10 +65,18 @@ if ($hassiteconfig) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         var html = \'<div class="row g-2">\';
-        html += \'<div class="col-6 col-md-3"><div class="card text-center p-2"><div class="fw-bold fs-5">\' + (data.this_month ? data.this_month.meetings : \'—\') + \'</div><div class="small text-muted">Reuniones este mes</div></div></div>\';
-        html += \'<div class="col-6 col-md-3"><div class="card text-center p-2"><div class="fw-bold fs-5">\' + (data.this_month ? data.this_month.hours : \'—\') + \'</div><div class="small text-muted">Horas de video</div></div></div>\';
-        html += \'<div class="col-6 col-md-3"><div class="card text-center p-2"><div class="fw-bold fs-5">\' + (data.this_month ? data.this_month.participants : \'—\') + \'</div><div class="small text-muted">Participantes</div></div></div>\';
-        html += \'<div class="col-6 col-md-3"><div class="card text-center p-2"><div class="fw-bold fs-5">\' + (data.total_recordings !== undefined ? data.total_recordings : \'—\') + \'</div><div class="small text-muted">Grabaciones</div></div></div>\';
+        var m = data.this_month;
+        var card = \'<div class="col-6 col-md-3"><div class="card text-center p-2">\';
+        var cend = \'</div></div></div>\';
+        html += card + \'<div class="fw-bold fs-5">\' + (m ? m.meetings : \'—\') +
+            \'</div><div class="small text-muted">Reuniones este mes</div>\' + cend;
+        html += card + \'<div class="fw-bold fs-5">\' + (m ? m.hours : \'—\') +
+            \'</div><div class="small text-muted">Horas de video</div>\' + cend;
+        html += card + \'<div class="fw-bold fs-5">\' + (m ? m.participants : \'—\') +
+            \'</div><div class="small text-muted">Participantes</div>\' + cend;
+        var recs = data.total_recordings !== undefined ? data.total_recordings : \'—\';
+        html += card + \'<div class="fw-bold fs-5">\' + recs +
+            \'</div><div class="small text-muted">Grabaciones</div>\' + cend;
         html += \'</div>\';
         document.getElementById(\'ssv-stats-container\').innerHTML = html;
     })

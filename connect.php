@@ -49,7 +49,7 @@ $apiUrl      = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: '';
 $message     = '';
 $messageType = 'info';
 
-// ── Handle form submission ────────────────────────────────────────────────────
+// Handle form submission.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
 
     if ($action === 'disconnect') {
