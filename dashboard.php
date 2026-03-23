@@ -98,7 +98,7 @@ if (!$isconnected) {
     );
 
     // Stats cards.
-    $statcard = function($id, $colorclass, $labelkey) {
+    $statcard = function ($id, $colorclass, $labelkey) {
         $inner = html_writer::div('&mdash;', 'display-6 fw-bold ' . $colorclass, ['id' => $id]);
         $inner .= html_writer::div(get_string($labelkey, 'local_softsysvideo'), 'text-muted small mt-1');
         return html_writer::div(

@@ -44,7 +44,7 @@ if ($action === 'submit') {
 
     $subject = required_param('subject', PARAM_TEXT);
     $description = required_param('description', PARAM_TEXT);
-    $course_id = optional_param('course_id', '', PARAM_TEXT);
+    $courseid = optional_param('course_id', '', PARAM_TEXT);
 
     $admin = get_admin();
     $from = $USER;
@@ -52,15 +52,15 @@ if ($action === 'submit') {
     $messagetext = strip_tags($description) . "\n\n";
     $messagetext .= "Moodle: {$CFG->wwwroot}\n";
     $messagetext .= "Plugin: local_softsysvideo\n";
-    if ($course_id) {
-        $messagetext .= "Course ID: {$course_id}\n";
+    if ($courseid) {
+        $messagetext .= "Course ID: {$courseid}\n";
     }
 
     $messagehtml = html_writer::tag('p', format_text($description, FORMAT_PLAIN));
     $messagehtml .= html_writer::tag('p', 'Moodle: ' . $CFG->wwwroot);
     $messagehtml .= html_writer::tag('p', 'Plugin: local_softsysvideo');
-    if ($course_id) {
-        $messagehtml .= html_writer::tag('p', 'Course ID: ' . s($course_id));
+    if ($courseid) {
+        $messagehtml .= html_writer::tag('p', 'Course ID: ' . s($courseid));
     }
 
     $result = email_to_user(

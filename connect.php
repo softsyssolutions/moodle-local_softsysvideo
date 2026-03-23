@@ -42,21 +42,22 @@ $PAGE->set_heading(get_string('pluginname', 'local_softsysvideo'));
 $PAGE->set_pagelayout('admin');
 
 $action = optional_param('action', '', PARAM_ALPHA);
-$is_connected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
-$tenant_name = get_config('local_softsysvideo', 'softsysvideo_tenant_name') ?: '';
-$api_url = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: '';
+$isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
+$tenantname = get_config('local_softsysvideo', 'softsysvideo_tenant_name') ?: '';
+$apiurl = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: '';
 
 $message = '';
-$message_type = 'info';
+$messagetype = 'info';
 
 // Handle form submission.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
     if ($action === 'disconnect') {
-        foreach ([
+        $configkeys = [
             'softsysvideo_api_url', 'softsysvideo_plugin_key', 'softsysvideo_shared_secret',
             'softsysvideo_tenant_name', 'cache_credit_balance', 'cache_updated_at',
             'softsysvideo_connection_id',
-        ] as $key) {
+        ];
+        foreach ($configkeys as $key) {
             unset_config($key, 'local_softsysvideo');
         }
         redirect(
@@ -73,23 +74,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
 
         if (empty($email) || empty($password)) {
             $message = get_string('email_password_required', 'local_softsysvideo');
-            $message_type = 'warning';
+            $messagetype = 'warning';
         } else {
-            $moodle_url = (new moodle_url('/'))->get_scheme() . '://' . $_SERVER['HTTP_HOST'];
+            $moodleurl = (new moodle_url('/'))->get_scheme() . '://' . $_SERVER['HTTP_HOST'];
 
-            $override_endpoint = get_config('local_softsysvideo', 'softsysvideo_connect_endpoint');
-            $connect_endpoint = !empty($override_endpoint)
-                ? $override_endpoint
+            $overrideendpoint = get_config('local_softsysvideo', 'softsysvideo_connect_endpoint');
+            $connectendpoint = !empty($overrideendpoint)
+                ? $overrideendpoint
                 : 'https://api.softsysvideo.com/api/moodle/connect';
 
             $payload = json_encode([
                 'email' => $email,
                 'password' => $password,
-                'moodle_url' => $moodle_url,
-                'label' => 'Moodle: ' . $moodle_url,
+                'moodle_url' => $moodleurl,
+                'label' => 'Moodle: ' . $moodleurl,
             ]);
 
-            $ch = curl_init($connect_endpoint);
+            $ch = curl_init($connectendpoint);
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_POST => true,
@@ -103,20 +104,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                 CURLOPT_FOLLOWLOCATION => true,
             ]);
             $response = curl_exec($ch);
-            $http_code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $curl_error = curl_error($ch);
+            $httpcode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlerror = curl_error($ch);
             curl_close($ch);
 
-            if ($http_code === 0 || !empty($curl_error)) {
+            if ($httpcode === 0 || !empty($curlerror)) {
                 $message = get_string('connection_server_error', 'local_softsysvideo')
-                    . ' ' . htmlspecialchars($curl_error ?: '');
-                $message_type = 'danger';
+                    . ' ' . htmlspecialchars($curlerror ?: '');
+                $messagetype = 'danger';
             } else {
                 $data = json_decode($response, true);
 
-                if (($http_code !== 200 && $http_code !== 201) || empty($data['plugin_key'])) {
-                    $message = $data['error'] ?? 'Error de conexión (HTTP ' . $http_code . ')';
-                    $message_type = 'danger';
+                if (($httpcode !== 200 && $httpcode !== 201) || empty($data['plugin_key'])) {
+                    $message = $data['error'] ?? 'Error de conexión (HTTP ' . $httpcode . ')';
+                    $messagetype = 'danger';
                 } else {
                     set_config('softsysvideo_api_url', $data['api_url'], 'local_softsysvideo');
                     set_config('softsysvideo_plugin_key', $data['plugin_key'], 'local_softsysvideo');
@@ -177,13 +178,13 @@ echo $navhtml;
 echo html_writer::tag('h2', get_string('connection', 'local_softsysvideo'));
 
 if ($message) {
-    echo html_writer::div(htmlspecialchars($message), 'alert alert-' . $message_type);
+    echo html_writer::div(htmlspecialchars($message), 'alert alert-' . $messagetype);
 }
 
-if ($is_connected) {
+if ($isconnected) {
     // Connected state card.
-    $orgrow = html_writer::tag('p', html_writer::tag('strong', 'Organización:') . ' ' . htmlspecialchars($tenant_name ?: '—'));
-    $apirow = html_writer::tag('p', html_writer::tag('strong', 'API URL:') . ' ' . html_writer::tag('code', htmlspecialchars($api_url)));
+    $orgrow = html_writer::tag('p', html_writer::tag('strong', 'Organización:') . ' ' . htmlspecialchars($tenantname ?: '—'));
+    $apirow = html_writer::tag('p', html_writer::tag('strong', 'API URL:') . ' ' . html_writer::tag('code', htmlspecialchars($apiurl)));
     $confirmstr = get_string('confirm_disconnect', 'local_softsysvideo');
     $disconnectbtn = html_writer::tag(
         'button',
