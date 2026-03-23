@@ -1,0 +1,81 @@
+{{!
+    @template local_softsysvideo/support_form
+
+    Support ticket form for Moodle admins.
+
+    Example context (json):
+    {
+        "wwwroot": "https://moodle.example.com",
+        "sesskey": "abc123"
+    }
+}}
+<div class="local-softsysvideo-support container-fluid py-4" style="max-width:700px">
+  <h4>🆘 Reportar problema a SoftSys Video</h4>
+  <p class="text-muted">El ticket llegará directamente al equipo de soporte de SoftSys.</p>
+
+  <div id="ssv-support-status" style="display:none" class="my-3" role="alert"></div>
+
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Asunto *</label>
+    <input type="text" id="ssv-subject" class="form-control" placeholder="ej. Las videoconferencias no inician"/>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Descripción *</label>
+    <textarea id="ssv-description" class="form-control" rows="5"
+      placeholder="Describe el problema con detalle: ¿cuándo ocurre?, ¿cuántos usuarios afecta?, ¿qué pasos reproduces?"></textarea>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label fw-semibold">ID de curso (opcional)</label>
+    <input type="text" id="ssv-course-id" class="form-control" placeholder="ej. 42"/>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button id="ssv-submit-btn" class="btn btn-danger">Enviar reporte</button>
+    <a href="{{wwwroot}}/admin/settings.php?section=local_softsysvideo" class="btn btn-outline-secondary">Cancelar</a>
+  </div>
+</div>
+
+<script>
+document.getElementById('ssv-submit-btn').addEventListener('click', async () => {
+    const subject     = document.getElementById('ssv-subject').value.trim();
+    const description = document.getElementById('ssv-description').value.trim();
+    const courseId    = document.getElementById('ssv-course-id').value.trim();
+    const status      = document.getElementById('ssv-support-status');
+
+    if (!subject || !description) {
+        status.style.display = 'block';
+        status.className = 'alert alert-warning my-3';
+        status.textContent = 'Por favor completa el asunto y la descripción.';
+        return;
+    }
+
+    status.style.display = 'block';
+    status.className = 'alert alert-info my-3';
+    status.textContent = 'Enviando...';
+
+    try {
+        const r = await fetch('{{wwwroot}}/local/softsysvideo/support.php?action=submit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: new URLSearchParams({
+                subject, description, course_id: courseId, sesskey: '{{sesskey}}'
+            })
+        });
+        const data = await r.json();
+        if (data.ok) {
+            status.className = 'alert alert-success my-3';
+            status.textContent = '✅ Reporte enviado. El equipo de SoftSys se pondrá en contacto pronto.';
+            document.getElementById('ssv-subject').value = '';
+            document.getElementById('ssv-description').value = '';
+        } else {
+            status.className = 'alert alert-danger my-3';
+            status.textContent = '❌ Error: ' + (data.error || 'No se pudo enviar el reporte.');
+        }
+    } catch (e) {
+        status.className = 'alert alert-danger my-3';
+        status.textContent = '❌ Error de red: ' + e.message;
+    }
+});
+</script>
