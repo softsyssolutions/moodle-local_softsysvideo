@@ -30,9 +30,39 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.1', '8.2']
-        moodle-branch: ['MOODLE_401_STABLE', 'MOODLE_404_STABLE', 'MOODLE_405_STABLE']
-        database: [pgsql, mariadb]
+        include:
+          - php: '8.1'
+            moodle-branch: 'MOODLE_405_STABLE'
+            database: pgsql
+            db-user: postgres
+          - php: '8.1'
+            moodle-branch: 'MOODLE_405_STABLE'
+            database: mariadb
+            db-user: root
+          - php: '8.2'
+            moodle-branch: 'MOODLE_405_STABLE'
+            database: pgsql
+            db-user: postgres
+          - php: '8.2'
+            moodle-branch: 'MOODLE_405_STABLE'
+            database: mariadb
+            db-user: root
+          - php: '8.1'
+            moodle-branch: 'MOODLE_404_STABLE'
+            database: pgsql
+            db-user: postgres
+          - php: '8.1'
+            moodle-branch: 'MOODLE_404_STABLE'
+            database: mariadb
+            db-user: root
+          - php: '8.1'
+            moodle-branch: 'MOODLE_401_STABLE'
+            database: pgsql
+            db-user: postgres
+          - php: '8.1'
+            moodle-branch: 'MOODLE_401_STABLE'
+            database: mariadb
+            db-user: root
 
     steps:
       - name: Check out repository code
@@ -60,7 +90,7 @@ jobs:
         env:
           DB: ${{ matrix.database }}
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
-          DB_USER: ${{ matrix.database == 'pgsql' && 'postgres' || 'root' }}
+          DB_USER: ${{ matrix.db-user }}
           DB_PASS: ''
 
       - name: PHP Lint
