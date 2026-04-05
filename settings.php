@@ -38,6 +38,18 @@ if ($hassiteconfig) {
         $dashboardurl = $wwwroot . '/local/softsysvideo/dashboard.php';
         $supporturl = $wwwroot . '/local/softsysvideo/support.php';
 
+        // Translated strings for inline JS.
+        $strmeetings = get_string('this_month_meetings', 'local_softsysvideo');
+        $strhours = get_string('video_hours', 'local_softsysvideo');
+        $strparticipants = get_string('participants', 'local_softsysvideo');
+        $strrecordings = get_string('recordings', 'local_softsysvideo');
+        $strloadingstats = get_string('loading_stats', 'local_softsysvideo');
+        $strstatsloaderror = get_string('stats_load_error', 'local_softsysvideo');
+        $strviewdashboard = get_string('view_dashboard', 'local_softsysvideo');
+        $strreconnect = get_string('reconnect', 'local_softsysvideo');
+        $strsupport = get_string('support', 'local_softsysvideo');
+        $strorg = get_string('organization_label', 'local_softsysvideo');
+
         if ($isconnected) {
             $connhtml = '
 <div class="card border-success mb-3">
@@ -45,21 +57,28 @@ if ($hassiteconfig) {
             get_string('connected', 'local_softsysvideo') . ': ' .
             htmlspecialchars($tenantname ?: '—') . '</div>
   <div class="card-body p-3">
-    <p class="mb-2"><strong>Organización:</strong> ' . htmlspecialchars($tenantname ?: '—') . '</p>
+    <p class="mb-2"><strong>' . $strorg . ':</strong> ' . htmlspecialchars($tenantname ?: '—') . '</p>
     <div id="ssv-stats-container">
-      <p class="text-muted small">Cargando estadísticas...</p>
+      <p class="text-muted small">' . $strloadingstats . '</p>
     </div>
     <div class="d-flex flex-wrap gap-2 mt-3">
-      <a href="' . $dashboardurl . '" class="btn btn-primary">📊 Ver Dashboard</a>
-      <a href="' . $connecturl . '" class="btn btn-sm btn-outline-secondary">🔄 Reconectar</a>
-      <a href="' . $supporturl . '" class="btn btn-sm btn-outline-danger">🆘 Soporte</a>
+      <a href="' . $dashboardurl . '" class="btn btn-primary">' . $strviewdashboard . '</a>
+      <a href="' . $connecturl . '" class="btn btn-sm btn-outline-secondary">' . $strreconnect . '</a>
+      <a href="' . $supporturl . '" class="btn btn-sm btn-outline-danger">' . $strsupport . '</a>
     </div>
   </div>
 </div>
 <script>
 (function() {
-    const API_URL = ' . json_encode($apiurl) . ';
-    const PLUGIN_KEY = ' . json_encode($pluginkey) . ';
+    var LABELS = {
+        meetings: ' . json_encode($strmeetings) . ',
+        hours: ' . json_encode($strhours) . ',
+        participants: ' . json_encode($strparticipants) . ',
+        recordings: ' . json_encode($strrecordings) . ',
+        error: ' . json_encode($strstatsloaderror) . '
+    };
+    var API_URL = ' . json_encode($apiurl) . ';
+    var PLUGIN_KEY = ' . json_encode($pluginkey) . ';
     fetch(API_URL + \'/api/moodle/stats\', {
         headers: { \'Authorization\': \'Bearer \' + PLUGIN_KEY }
     })
@@ -70,20 +89,20 @@ if ($hassiteconfig) {
         var card = \'<div class="col-6 col-md-3"><div class="card text-center p-2">\';
         var cend = \'</div></div></div>\';
         html += card + \'<div class="fw-bold fs-5">\' + (m ? m.meetings : \'—\') +
-            \'</div><div class="small text-muted">Reuniones este mes</div>\' + cend;
+            \'</div><div class="small text-muted">\' + LABELS.meetings + \'</div>\' + cend;
         html += card + \'<div class="fw-bold fs-5">\' + (m ? m.hours : \'—\') +
-            \'</div><div class="small text-muted">Horas de video</div>\' + cend;
+            \'</div><div class="small text-muted">\' + LABELS.hours + \'</div>\' + cend;
         html += card + \'<div class="fw-bold fs-5">\' + (m ? m.participants : \'—\') +
-            \'</div><div class="small text-muted">Participantes</div>\' + cend;
+            \'</div><div class="small text-muted">\' + LABELS.participants + \'</div>\' + cend;
         var recs = data.total_recordings !== undefined ? data.total_recordings : \'—\';
         html += card + \'<div class="fw-bold fs-5">\' + recs +
-            \'</div><div class="small text-muted">Grabaciones</div>\' + cend;
+            \'</div><div class="small text-muted">\' + LABELS.recordings + \'</div>\' + cend;
         html += \'</div>\';
         document.getElementById(\'ssv-stats-container\').innerHTML = html;
     })
     .catch(function() {
-        var errMsg = \'<p class="text-muted small">No se pudieron cargar las estadísticas.</p>\';
-        document.getElementById(\'ssv-stats-container\').innerHTML = errMsg;
+        document.getElementById(\'ssv-stats-container\').innerHTML =
+            \'<p class="text-muted small">\' + LABELS.error + \'</p>\';
     });
 })();
 </script>';
@@ -105,31 +124,6 @@ if ($hassiteconfig) {
             'local_softsysvideo/connectionstatus',
             get_string('connection', 'local_softsysvideo'),
             $connhtml
-        ));
-
-        // Advanced config fields (hidden, but needed for Moodle to store them).
-        $settings->add(new admin_setting_configtext(
-            'local_softsysvideo/softsysvideo_api_url',
-            get_string('api_url', 'local_softsysvideo'),
-            get_string('api_url_help', 'local_softsysvideo'),
-            '',
-            PARAM_URL
-        ));
-
-        $settings->add(new admin_setting_configpasswordunmask(
-            'local_softsysvideo/softsysvideo_plugin_key',
-            get_string('plugin_key', 'local_softsysvideo'),
-            get_string('plugin_key_help', 'local_softsysvideo'),
-            ''
-        ));
-
-        // Endpoint override for dev/staging.
-        $settings->add(new admin_setting_configtext(
-            'local_softsysvideo/softsysvideo_connect_endpoint',
-            get_string('connect_endpoint', 'local_softsysvideo'),
-            get_string('endpoint_help', 'local_softsysvideo'),
-            '',
-            PARAM_URL
         ));
     }
 

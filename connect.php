@@ -17,12 +17,8 @@
 /**
  * Connect page for the SoftSys Video companion plugin.
  *
- * Form-based connect wizard. Avoids AJAX POST because Moodle 4.5 Slim router
- * blocks POST to local plugin PHP files.
- *
- * On submit:
- *  - Calls POST /api/moodle/connect on the SoftSys Video API
- *  - Saves Plugin API Key, API URL and tenant info to Moodle config
+ * The admin pastes a Dashboard API key (created at app.softsysvideo.com)
+ * to link this Moodle installation with their SoftSys Video account.
  *
  * @package    local_softsysvideo
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
@@ -69,23 +65,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
     }
 
     if ($action === 'connect') {
-        $email = required_param('email', PARAM_EMAIL);
-        $password = required_param('password', PARAM_RAW_TRIMMED);
+        $apikey = required_param('api_key', PARAM_RAW_TRIMMED);
 
-        if (empty($email) || empty($password)) {
-            $message = get_string('email_password_required', 'local_softsysvideo');
+        if (empty($apikey)) {
+            $message = get_string('api_key_required', 'local_softsysvideo');
             $messagetype = 'warning';
         } else {
             $moodleurl = (new moodle_url('/'))->get_scheme() . '://' . $_SERVER['HTTP_HOST'];
-
-            $overrideendpoint = get_config('local_softsysvideo', 'softsysvideo_connect_endpoint');
-            $connectendpoint = !empty($overrideendpoint)
-                ? $overrideendpoint
-                : 'https://api.softsysvideo.com/api/moodle/connect';
+            $connectendpoint = 'https://api.softsysvideo.com/api/moodle/connect';
 
             $payload = json_encode([
-                'email' => $email,
-                'password' => $password,
+                'api_key' => $apikey,
                 'moodle_url' => $moodleurl,
                 'label' => 'Moodle: ' . $moodleurl,
             ]);
@@ -115,12 +105,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             } else {
                 $data = json_decode($response, true);
 
-                if (($httpcode !== 200 && $httpcode !== 201) || empty($data['plugin_key'])) {
-                    $message = $data['error'] ?? 'Error de conexión (HTTP ' . $httpcode . ')';
+                if (($httpcode !== 200 && $httpcode !== 201) || empty($data['api_url'])) {
+                    $message = $data['error'] ?? get_string('connection_error_http', 'local_softsysvideo', $httpcode);
                     $messagetype = 'danger';
                 } else {
                     set_config('softsysvideo_api_url', $data['api_url'], 'local_softsysvideo');
-                    set_config('softsysvideo_plugin_key', $data['plugin_key'], 'local_softsysvideo');
+                    set_config('softsysvideo_plugin_key', $apikey, 'local_softsysvideo');
                     set_config('softsysvideo_shared_secret', $data['shared_secret'] ?? '', 'local_softsysvideo');
                     set_config('softsysvideo_tenant_name', $data['tenant_name'] ?? '', 'local_softsysvideo');
                     set_config('cache_credit_balance', $data['credit_balance'] ?? null, 'local_softsysvideo');
@@ -183,9 +173,9 @@ if ($message) {
 
 if ($isconnected) {
     // Connected state card.
-    $orgrow = html_writer::tag('p', html_writer::tag('strong', 'Organización:') . ' ' . htmlspecialchars($tenantname ?: '—'));
+    $orgrow = html_writer::tag('p', html_writer::tag('strong', get_string('organization_label', 'local_softsysvideo') . ':') . ' ' . htmlspecialchars($tenantname ?: '—'));
     $apicodehtml = html_writer::tag('code', htmlspecialchars($apiurl));
-    $apirow = html_writer::tag('p', html_writer::tag('strong', 'API URL:') . ' ' . $apicodehtml);
+    $apirow = html_writer::tag('p', html_writer::tag('strong', get_string('api_url_label', 'local_softsysvideo') . ':') . ' ' . $apicodehtml);
     $confirmstr = get_string('confirm_disconnect', 'local_softsysvideo');
     $disconnectbtn = html_writer::tag(
         'button',
@@ -208,23 +198,22 @@ if ($isconnected) {
     echo html_writer::tag('h3', get_string('reconnect', 'local_softsysvideo'));
 }
 
-// Connect form.
-$emailinput = html_writer::tag('label', 'Email', ['for' => 'ssv-email', 'class' => 'form-label']);
-$emailinput .= html_writer::empty_tag('input', [
-    'type' => 'email',
-    'id' => 'ssv-email',
-    'name' => 'email',
-    'class' => 'form-control',
-    'required' => 'required',
-    'placeholder' => 'tu@empresa.com',
+// Connect form — single API key field.
+$keyinput = html_writer::tag('label', get_string('api_key_label', 'local_softsysvideo'), [
+    'for' => 'ssv-api-key',
+    'class' => 'form-label',
 ]);
-$passinput = html_writer::tag('label', get_string('password'), ['for' => 'ssv-password', 'class' => 'form-label']);
-$passinput .= html_writer::empty_tag('input', [
-    'type' => 'password',
-    'id' => 'ssv-password',
-    'name' => 'password',
-    'class' => 'form-control',
+$keyinput .= html_writer::empty_tag('input', [
+    'type' => 'text',
+    'id' => 'ssv-api-key',
+    'name' => 'api_key',
+    'class' => 'form-control font-monospace',
     'required' => 'required',
+    'placeholder' => 'sss_live_...',
+    'autocomplete' => 'off',
+]);
+$keyhelp = html_writer::tag('div', get_string('api_key_help', 'local_softsysvideo'), [
+    'class' => 'form-text text-muted',
 ]);
 $submitbtn = html_writer::tag('button', get_string('connect', 'local_softsysvideo'), [
     'type' => 'submit',
@@ -234,8 +223,7 @@ $instrp = html_writer::tag('p', get_string('connect_instructions', 'local_softsy
 $forminner = $instrp .
     html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]) .
     html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'action', 'value' => 'connect']) .
-    html_writer::div($emailinput, 'mb-3') .
-    html_writer::div($passinput, 'mb-3') .
+    html_writer::div($keyinput . $keyhelp, 'mb-3') .
     $submitbtn;
 $form = html_writer::tag('form', $forminner, ['method' => 'post', 'action' => '']);
 echo html_writer::div(html_writer::div($form, 'card-body'), 'card');
