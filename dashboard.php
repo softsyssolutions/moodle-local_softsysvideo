@@ -124,7 +124,7 @@ if (!$isconnected) {
     // Analytics charts.
     echo html_writer::tag('h4', get_string('usage_over_time', 'local_softsysvideo'), ['class' => 'mt-4 mb-3']);
     echo html_writer::div(
-        html_writer::div('', 'spinner-border text-primary', ['role' => 'status']),
+        $OUTPUT->pix_icon('i/loading', '', 'moodle', ['class' => 'icon-lg']),
         'text-center py-3',
         ['id' => 'ssv-analytics-spinner']
     );
@@ -156,34 +156,6 @@ if (!$isconnected) {
         ['id' => 'ssv-charts-row']
     );
 
-    // Quick links.
-    $reccard = html_writer::div(
-        html_writer::tag('h5', get_string('recordings', 'local_softsysvideo'), ['class' => 'card-title']) .
-        html_writer::tag('p', get_string('recordings_desc', 'local_softsysvideo'), ['class' => 'card-text text-muted']) .
-        $OUTPUT->single_button(
-            new moodle_url('/local/softsysvideo/recordings.php'),
-            get_string('recordings', 'local_softsysvideo'),
-            'get',
-            ['class' => 'btn-outline-primary']
-        ),
-        'card-body'
-    );
-    $meetcard = html_writer::div(
-        html_writer::tag('h5', get_string('meetings', 'local_softsysvideo'), ['class' => 'card-title']) .
-        html_writer::tag('p', get_string('meetings_desc', 'local_softsysvideo'), ['class' => 'card-text text-muted']) .
-        $OUTPUT->single_button(
-            new moodle_url('/local/softsysvideo/meetings.php'),
-            get_string('meetings', 'local_softsysvideo'),
-            'get',
-            ['class' => 'btn-outline-primary']
-        ),
-        'card-body'
-    );
-    echo html_writer::div(
-        html_writer::div(html_writer::div($reccard, 'card'), 'col-md-6') .
-        html_writer::div(html_writer::div($meetcard, 'card'), 'col-md-6'),
-        'row g-3'
-    );
 }
 
 echo html_writer::end_div();

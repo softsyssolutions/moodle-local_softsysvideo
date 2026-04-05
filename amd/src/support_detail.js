@@ -15,50 +15,37 @@
 
 /**
  * Support ticket detail AMD module for local_softsysvideo.
- * Fetches a single ticket from the external API and renders
- * the ticket card and message timeline.
  *
  * @module     local_softsysvideo/support_detail
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
+define(['core/ajax', 'core/notification'], function() {
 
     var apiUrl = '';
     var pluginKey = '';
     var strings = {};
 
-    /**
-     * Map a ticket status value to a Bootstrap badge class.
-     *
-     * @param {string} status
-     * @return {string} Bootstrap badge CSS classes
-     */
     function statusBadgeClass(status) {
-        switch (status) {
-            case 'new':         return 'badge bg-primary';
-            case 'in_progress': return 'badge bg-warning text-dark';
-            case 'answered':    return 'badge bg-success';
-            case 'resolved':    return 'badge bg-success';
-            default:            return 'badge bg-secondary';
-        }
+        var s = (status || '').toLowerCase();
+        if (s === 'new' || s === 'nuevo')                       { return 'badge bg-primary'; }
+        if (s === 'in progress' || s === 'en progreso')         { return 'badge bg-warning text-dark'; }
+        if (s === 'answered' || s === 'respondido')             { return 'badge bg-info text-dark'; }
+        if (s === 'solved' || s === 'resolved' || s === 'resuelto') { return 'badge bg-success'; }
+        if (s === 'closed' || s === 'cerrado')                  { return 'badge bg-secondary'; }
+        return 'badge bg-secondary';
     }
 
     function showSpinner() {
-        var spinner = document.getElementById('ssv-detail-spinner');
-        if (spinner) { spinner.classList.remove('d-none'); }
+        var el = document.getElementById('ssv-detail-spinner');
+        if (el) { el.classList.remove('d-none'); }
     }
 
     function hideSpinner() {
-        var spinner = document.getElementById('ssv-detail-spinner');
-        if (spinner) { spinner.classList.add('d-none'); }
+        var el = document.getElementById('ssv-detail-spinner');
+        if (el) { el.classList.add('d-none'); }
     }
 
-    /**
-     * Populate the ticket info card from the ticket object.
-     *
-     * @param {Object} ticket  Ticket object returned by the API.
-     */
     function renderTicketCard(ticket) {
         var subjectEl  = document.getElementById('ssv-detail-subject');
         var statusEl   = document.getElementById('ssv-detail-status');
@@ -78,19 +65,22 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         if (priorityEl) { priorityEl.textContent = ticket.priority || '\u2014'; }
 
         if (dateEl) {
-            dateEl.textContent = ticket.created_at ?
-                new Date(ticket.created_at).toLocaleString() : '\u2014';
+            dateEl.textContent = ticket.createdAt
+                ? new Date(ticket.createdAt).toLocaleString()
+                : '\u2014';
+        }
+
+        // Show description if available.
+        var descEl = document.getElementById('ssv-detail-description');
+        if (descEl && ticket.description) {
+            descEl.innerHTML = ticket.description;
+            descEl.classList.remove('d-none');
         }
 
         var card = document.getElementById('ssv-detail-card');
         if (card) { card.classList.remove('d-none'); }
     }
 
-    /**
-     * Render the message timeline from the messages array.
-     *
-     * @param {Array} messages  Array of message objects returned by the API.
-     */
     function renderMessages(messages) {
         var timeline = document.getElementById('ssv-detail-timeline');
         if (!timeline) { return; }
@@ -106,27 +96,58 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
                 var card = document.createElement('div');
                 card.className = 'card mb-3';
 
+                // Header: author + date.
                 var header = document.createElement('div');
                 header.className = 'card-header d-flex justify-content-between align-items-center';
 
                 var authorEl = document.createElement('strong');
-                authorEl.textContent = msg.author_name || msg.author_email ||
-                    (strings.system_author || 'System');
+                authorEl.textContent = msg.author || (strings.system_author || 'System');
                 header.appendChild(authorEl);
 
                 var dateEl = document.createElement('small');
                 dateEl.className = 'text-muted';
-                dateEl.textContent = msg.created_at ? new Date(msg.created_at).toLocaleString() : '\u2014';
+                dateEl.textContent = msg.date ? new Date(msg.date).toLocaleString() : '\u2014';
                 header.appendChild(dateEl);
 
                 card.appendChild(header);
 
+                // Body: HTML content from Odoo (sanitized server-side).
                 var bodyEl = document.createElement('div');
                 bodyEl.className = 'card-body';
-                // Body is HTML from Odoo messages, already sanitized server-side.
                 bodyEl.innerHTML = msg.body || '';
-                card.appendChild(bodyEl);
 
+                // Attachments (images).
+                if (msg.attachments && msg.attachments.length > 0) {
+                    var attDiv = document.createElement('div');
+                    attDiv.className = 'mt-3 d-flex flex-wrap gap-2';
+
+                    msg.attachments.forEach(function(att) {
+                        var link = document.createElement('a');
+                        // Build full URL for the moodle-authenticated image proxy.
+                        link.href = apiUrl + att.url;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.title = att.name || 'Attachment';
+
+                        var img = document.createElement('img');
+                        img.src = apiUrl + att.url;
+                        img.alt = att.name || 'Attachment';
+                        img.style.cssText = 'max-width:200px;max-height:150px;border-radius:4px;border:1px solid #dee2e6';
+                        img.onerror = function() {
+                            // If image fails, show a text link instead.
+                            link.textContent = att.name || 'Attachment';
+                            link.className = 'btn btn-sm btn-outline-secondary';
+                            if (link.contains(img)) { link.removeChild(img); }
+                        };
+
+                        link.appendChild(img);
+                        attDiv.appendChild(link);
+                    });
+
+                    bodyEl.appendChild(attDiv);
+                }
+
+                card.appendChild(bodyEl);
                 timeline.appendChild(card);
             });
         }
@@ -136,14 +157,6 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
     }
 
     return {
-        /**
-         * Initialise the support detail page.
-         *
-         * @param {string} url       Base API URL.
-         * @param {string} key       Plugin API key (Bearer token).
-         * @param {number} ticketId  ID of the ticket to display.
-         * @param {Object} strs      Translated UI strings from PHP.
-         */
         init: function(url, key, ticketId, strs) {
             apiUrl    = url;
             pluginKey = key;

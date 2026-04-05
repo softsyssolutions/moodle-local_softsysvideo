@@ -181,17 +181,12 @@ if (!$isconnected) {
         ['id' => 'ssv-support-form']
     );
 
-    // Spinner.
-    $spinner = html_writer::div(
-        html_writer::div(
-            html_writer::tag('span', get_string('loading', 'local_softsysvideo'), ['class' => 'visually-hidden']),
-            'spinner-border text-primary',
-            ['role' => 'status']
-        ),
+    // Spinner (Moodle native).
+    echo html_writer::div(
+        $OUTPUT->pix_icon('i/loading', '', 'moodle', ['class' => 'icon-lg']),
         'text-center py-3',
         ['id' => 'ssv-support-spinner']
     );
-    echo $spinner;
 
     // Tickets table (hidden until data loads).
     $th  = html_writer::tag('th', get_string('ticket_subject', 'local_softsysvideo'));

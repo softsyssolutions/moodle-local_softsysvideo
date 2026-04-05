@@ -110,17 +110,12 @@ if (!$isconnected) {
         ['id' => 'ssv-detail-error']
     );
 
-    // Spinner.
-    $spinner = html_writer::div(
-        html_writer::div(
-            html_writer::tag('span', get_string('loading', 'local_softsysvideo'), ['class' => 'visually-hidden']),
-            'spinner-border text-primary',
-            ['role' => 'status']
-        ),
+    // Spinner (Moodle native).
+    echo html_writer::div(
+        $OUTPUT->pix_icon('i/loading', '', 'moodle', ['class' => 'icon-lg']),
         'text-center py-3',
         ['id' => 'ssv-detail-spinner']
     );
-    echo $spinner;
 
     // Ticket info card (hidden until data loads).
     $subjectrow = html_writer::tag(
@@ -144,8 +139,10 @@ if (!$isconnected) {
         html_writer::tag('span', '', ['id' => 'ssv-detail-date'])
     );
 
+    $descrow = html_writer::div('', 'mt-3 p-3 bg-light rounded d-none', ['id' => 'ssv-detail-description']);
+
     echo html_writer::div(
-        html_writer::div($subjectrow . $statusrow . $priorityrow . $daterow, 'card-body'),
+        html_writer::div($subjectrow . $statusrow . $priorityrow . $daterow . $descrow, 'card-body'),
         'card mb-4 d-none',
         ['id' => 'ssv-detail-card']
     );
