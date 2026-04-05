@@ -15,7 +15,7 @@
 
 /**
  * Meetings AMD module for local_softsysvideo.
- * Supports pagination, search with debounce, and spinner.
+ * Supports pagination, search with debounce, spinner, and advanced filters.
  *
  * @module     local_softsysvideo/meetings
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
@@ -54,24 +54,72 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         var prevBtn = document.getElementById('ssv-meet-prev');
         if (prevBtn && page > 1) {
             prevBtn.addEventListener('click', function() {
-                loadPage(page - 1, currentSearch);
+                loadMeetings(page - 1, currentSearch);
             });
         }
         var nextBtn = document.getElementById('ssv-meet-next');
         if (nextBtn && page < totalPages) {
             nextBtn.addEventListener('click', function() {
-                loadPage(page + 1, currentSearch);
+                loadMeetings(page + 1, currentSearch);
             });
         }
     }
 
-    function loadPage(page, search) {
+    /**
+     * Reads current filter values from the DOM and builds the query string fragment.
+     *
+     * @return {string} URL-encoded query string fragment (without leading &).
+     */
+    function buildFilterParams() {
+        var params = '';
+
+        var statusEl = document.getElementById('ssv-filter-status');
+        if (statusEl && statusEl.value) {
+            params += '&status=' + encodeURIComponent(statusEl.value);
+        }
+
+        var dateFromEl = document.getElementById('ssv-filter-date-from');
+        if (dateFromEl && dateFromEl.value) {
+            var tsFrom = Math.floor(new Date(dateFromEl.value).getTime() / 1000);
+            if (!isNaN(tsFrom)) {
+                params += '&date_from=' + tsFrom;
+            }
+        }
+
+        var dateToEl = document.getElementById('ssv-filter-date-to');
+        if (dateToEl && dateToEl.value) {
+            var tsTo = Math.floor(new Date(dateToEl.value).getTime() / 1000);
+            if (!isNaN(tsTo)) {
+                params += '&date_to=' + tsTo;
+            }
+        }
+
+        var recEl = document.getElementById('ssv-filter-recording');
+        if (recEl && recEl.value) {
+            params += '&has_recording=' + encodeURIComponent(recEl.value);
+        }
+
+        var sortByEl = document.getElementById('ssv-filter-sort-by');
+        if (sortByEl && sortByEl.value) {
+            params += '&sort_by=' + encodeURIComponent(sortByEl.value);
+        }
+
+        var sortOrderEl = document.getElementById('ssv-filter-sort-order');
+        if (sortOrderEl && sortOrderEl.value) {
+            params += '&sort_order=' + encodeURIComponent(sortOrderEl.value);
+        }
+
+        return params;
+    }
+
+    function loadMeetings(page, search) {
         currentPage = page;
         currentSearch = search;
         showSpinner();
 
         var url = apiUrl + '/api/moodle/meetings?page=' + page + '&per_page=20';
         if (search) { url += '&search=' + encodeURIComponent(search); }
+        url += buildFilterParams();
 
         fetch(url, {headers: {'Authorization': 'Bearer ' + pluginKey}})
         .then(function(r) { return r.json(); })
@@ -111,10 +159,44 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         });
     }
 
+    /**
+     * Initialises the collapsible filter panel toggle and apply button handlers.
+     */
+    function initFilters() {
+        var toggleBtn = document.getElementById('ssv-filter-toggle');
+        var panel = document.getElementById('ssv-filter-panel');
+
+        if (toggleBtn && panel) {
+            toggleBtn.addEventListener('click', function() {
+                if (panel.classList.contains('d-none')) {
+                    panel.classList.remove('d-none');
+                } else {
+                    panel.classList.add('d-none');
+                }
+            });
+        }
+
+        var applyBtn = document.getElementById('ssv-filter-apply');
+        if (applyBtn) {
+            applyBtn.addEventListener('click', function() {
+                loadMeetings(1, currentSearch);
+            });
+        }
+    }
+
     return {
-        init: function(url, key) {
+        /**
+         * Initialises the meetings module.
+         *
+         * @param {string} url      Base API URL.
+         * @param {string} key      Plugin API key (Bearer token).
+         * @param {Object} strs     Translated UI strings passed from PHP.
+         */
+        init: function(url, key, strs) {
             apiUrl = url;
             pluginKey = key;
+
+            initFilters();
 
             var searchInput = document.getElementById('ssv-meetings-search');
             if (searchInput) {
@@ -122,12 +204,12 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
                     clearTimeout(debounceTimer);
                     var val = searchInput.value;
                     debounceTimer = setTimeout(function() {
-                        loadPage(1, val);
+                        loadMeetings(1, val);
                     }, 400);
                 });
             }
 
-            loadPage(1, '');
+            loadMeetings(1, '');
         }
     };
 });

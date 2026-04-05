@@ -39,7 +39,28 @@ $apiurl = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: 'https://a
 $pluginkey = get_config('local_softsysvideo', 'softsysvideo_plugin_key') ?: '';
 
 if ($isconnected) {
-    $PAGE->requires->js_call_amd('local_softsysvideo/meetings', 'init', [$apiurl, $pluginkey]);
+    $filterstrs = [
+        'filters'           => get_string('filters', 'local_softsysvideo'),
+        'show_filters'      => get_string('show_filters', 'local_softsysvideo'),
+        'hide_filters'      => get_string('hide_filters', 'local_softsysvideo'),
+        'all_statuses'      => get_string('all_statuses', 'local_softsysvideo'),
+        'active_meetings'   => get_string('active_meetings', 'local_softsysvideo'),
+        'ended_meetings'    => get_string('ended_meetings', 'local_softsysvideo'),
+        'with_recording'    => get_string('with_recording', 'local_softsysvideo'),
+        'without_recording' => get_string('without_recording', 'local_softsysvideo'),
+        'sort_by'           => get_string('sort_by', 'local_softsysvideo'),
+        'sort_order'        => get_string('sort_order', 'local_softsysvideo'),
+        'ascending'         => get_string('ascending', 'local_softsysvideo'),
+        'descending'        => get_string('descending', 'local_softsysvideo'),
+        'sort_date'         => get_string('sort_date', 'local_softsysvideo'),
+        'sort_duration'     => get_string('sort_duration', 'local_softsysvideo'),
+        'sort_participants' => get_string('sort_participants', 'local_softsysvideo'),
+        'sort_name'         => get_string('sort_name', 'local_softsysvideo'),
+        'apply_filters'     => get_string('apply_filters', 'local_softsysvideo'),
+        'date_from'         => get_string('date_from', 'local_softsysvideo'),
+        'date_to'           => get_string('date_to', 'local_softsysvideo'),
+    ];
+    $PAGE->requires->js_call_amd('local_softsysvideo/meetings', 'init', [$apiurl, $pluginkey, $filterstrs]);
 }
 
 // Build plugin navigation.
@@ -101,17 +122,128 @@ if (!$isconnected) {
         'style' => 'max-width:250px',
     ]);
     $pagination = html_writer::div('', 'd-flex gap-2 align-items-center', ['id' => 'ssv-meetings-pagination']);
+    $filtertoggle = html_writer::tag(
+        'button',
+        get_string('filters', 'local_softsysvideo'),
+        [
+            'type'  => 'button',
+            'id'    => 'ssv-filter-toggle',
+            'class' => 'btn btn-sm btn-outline-secondary',
+        ]
+    );
     echo html_writer::div(
-        $searchinput . $pagination,
-        'd-flex justify-content-between align-items-center mb-2'
+        $searchinput . $filtertoggle . $pagination,
+        'd-flex gap-2 justify-content-between align-items-center mb-2'
+    );
+
+    // Filter panel - initially hidden.
+    $statusopts =
+        html_writer::tag('option', get_string('all_statuses', 'local_softsysvideo'), ['value' => '']) .
+        html_writer::tag('option', get_string('active_meetings', 'local_softsysvideo'), ['value' => 'active']) .
+        html_writer::tag('option', get_string('ended_meetings', 'local_softsysvideo'), ['value' => 'ended']);
+    $statussel = html_writer::tag('select', $statusopts, [
+        'id'    => 'ssv-filter-status',
+        'class' => 'form-control form-control-sm',
+    ]);
+
+    $recopts =
+        html_writer::tag('option', get_string('all_statuses', 'local_softsysvideo'), ['value' => '']) .
+        html_writer::tag('option', get_string('with_recording', 'local_softsysvideo'), ['value' => 'true']) .
+        html_writer::tag('option', get_string('without_recording', 'local_softsysvideo'), ['value' => 'false']);
+    $recsel = html_writer::tag('select', $recopts, [
+        'id'    => 'ssv-filter-recording',
+        'class' => 'form-control form-control-sm',
+    ]);
+
+    $datefrom = html_writer::empty_tag('input', [
+        'type'  => 'date',
+        'id'    => 'ssv-filter-date-from',
+        'class' => 'form-control form-control-sm',
+    ]);
+    $dateto = html_writer::empty_tag('input', [
+        'type'  => 'date',
+        'id'    => 'ssv-filter-date-to',
+        'class' => 'form-control form-control-sm',
+    ]);
+
+    $sortbyopts =
+        html_writer::tag('option', get_string('sort_date', 'local_softsysvideo'), ['value' => 'started_at']) .
+        html_writer::tag('option', get_string('sort_duration', 'local_softsysvideo'), ['value' => 'duration_seconds']) .
+        html_writer::tag('option', get_string('sort_participants', 'local_softsysvideo'), ['value' => 'participant_count']) .
+        html_writer::tag('option', get_string('sort_name', 'local_softsysvideo'), ['value' => 'name']);
+    $sortbysel = html_writer::tag('select', $sortbyopts, [
+        'id'    => 'ssv-filter-sort-by',
+        'class' => 'form-control form-control-sm',
+    ]);
+
+    $sortorderopts =
+        html_writer::tag('option', get_string('descending', 'local_softsysvideo'), ['value' => 'desc']) .
+        html_writer::tag('option', get_string('ascending', 'local_softsysvideo'), ['value' => 'asc']);
+    $sortordersel = html_writer::tag('select', $sortorderopts, [
+        'id'    => 'ssv-filter-sort-order',
+        'class' => 'form-control form-control-sm',
+    ]);
+
+    $applybutton = html_writer::tag(
+        'button',
+        get_string('apply_filters', 'local_softsysvideo'),
+        [
+            'type'  => 'button',
+            'id'    => 'ssv-filter-apply',
+            'class' => 'btn btn-sm btn-primary',
+        ]
+    );
+
+    $row1 =
+        html_writer::div(
+            html_writer::tag('label', get_string('status', 'local_softsysvideo'), ['class' => 'small mb-1']) .
+            $statussel,
+            'col-md-6 mb-2'
+        ) .
+        html_writer::div(
+            html_writer::tag('label', get_string('recordings', 'local_softsysvideo'), ['class' => 'small mb-1']) .
+            $recsel,
+            'col-md-6 mb-2'
+        );
+    $row2 =
+        html_writer::div(
+            html_writer::tag('label', get_string('date_from', 'local_softsysvideo'), ['class' => 'small mb-1']) .
+            $datefrom,
+            'col-md-6 mb-2'
+        ) .
+        html_writer::div(
+            html_writer::tag('label', get_string('date_to', 'local_softsysvideo'), ['class' => 'small mb-1']) .
+            $dateto,
+            'col-md-6 mb-2'
+        );
+    $row3 =
+        html_writer::div(
+            html_writer::tag('label', get_string('sort_by', 'local_softsysvideo'), ['class' => 'small mb-1']) .
+            $sortbysel,
+            'col-md-6 mb-2'
+        ) .
+        html_writer::div(
+            html_writer::tag('label', get_string('sort_order', 'local_softsysvideo'), ['class' => 'small mb-1']) .
+            $sortordersel,
+            'col-md-6 mb-2'
+        );
+    $row4 = html_writer::div($applybutton, 'col-12 mt-1');
+
+    $panelbody = html_writer::div(
+        html_writer::div($row1, 'row') .
+        html_writer::div($row2, 'row') .
+        html_writer::div($row3, 'row') .
+        html_writer::div($row4, 'row'),
+        'card-body py-2'
+    );
+    echo html_writer::div(
+        html_writer::div($panelbody, 'card card-body py-2 bg-light border'),
+        'd-none mb-3',
+        ['id' => 'ssv-filter-panel']
     );
 
     $spinner = html_writer::div(
-        html_writer::div(
-            html_writer::tag('span', get_string('loading', 'local_softsysvideo'), ['class' => 'visually-hidden']),
-            'spinner-border text-primary',
-            ['role' => 'status']
-        ),
+        $OUTPUT->pix_icon('i/loading', '', 'moodle', ['class' => 'icon-lg']),
         'text-center py-3',
         ['id' => 'ssv-meetings-spinner']
     );
