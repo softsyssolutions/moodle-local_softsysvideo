@@ -38,10 +38,17 @@ $PAGE->set_title(get_string('ticket_detail', 'local_softsysvideo'));
 $PAGE->set_heading(get_string('pluginname', 'local_softsysvideo'));
 $PAGE->set_pagelayout('admin');
 
+$isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
 $apiurl = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: 'https://api.softsysvideo.com';
 $pluginkey = get_config('local_softsysvideo', 'softsysvideo_plugin_key') ?: '';
 
-$PAGE->requires->js_call_amd('local_softsysvideo/support_detail', 'init', [$apiurl, $pluginkey, $ticketid]);
+if ($isconnected) {
+    $jsstrings = [
+        'no_messages' => get_string('no_messages', 'local_softsysvideo'),
+        'system_author' => 'System',
+    ];
+    $PAGE->requires->js_call_amd('local_softsysvideo/support_detail', 'init', [$apiurl, $pluginkey, $ticketid, $jsstrings]);
+}
 
 // Build plugin navigation.
 $navlinks = [];
@@ -86,61 +93,72 @@ echo html_writer::link(
 
 echo html_writer::tag('h2', get_string('ticket_detail', 'local_softsysvideo'));
 
-// Error alert (hidden by default).
-echo html_writer::div(
-    get_string('request_failed', 'local_softsysvideo'),
-    'alert alert-danger d-none',
-    ['id' => 'ssv-detail-error']
-);
+if (!$isconnected) {
+    echo $OUTPUT->notification(
+        get_string('not_connected', 'local_softsysvideo') . ' ' .
+        html_writer::link(
+            new moodle_url('/local/softsysvideo/connect.php'),
+            get_string('connect_account', 'local_softsysvideo')
+        ),
+        \core\output\notification::NOTIFY_WARNING
+    );
+} else {
+    // Error alert (hidden by default).
+    echo html_writer::div(
+        get_string('request_failed', 'local_softsysvideo'),
+        'alert alert-danger d-none',
+        ['id' => 'ssv-detail-error']
+    );
 
-// Spinner.
-$spinner = html_writer::div(
-    html_writer::div(
-        html_writer::tag('span', get_string('loading', 'local_softsysvideo'), ['class' => 'visually-hidden']),
-        'spinner-border text-primary',
-        ['role' => 'status']
-    ),
-    'text-center py-3',
-    ['id' => 'ssv-detail-spinner']
-);
-echo $spinner;
+    // Spinner.
+    $spinner = html_writer::div(
+        html_writer::div(
+            html_writer::tag('span', get_string('loading', 'local_softsysvideo'), ['class' => 'visually-hidden']),
+            'spinner-border text-primary',
+            ['role' => 'status']
+        ),
+        'text-center py-3',
+        ['id' => 'ssv-detail-spinner']
+    );
+    echo $spinner;
 
-// Ticket info card (hidden until data loads).
-$subjectrow = html_writer::tag(
-    'p',
-    html_writer::tag('strong', get_string('ticket_subject', 'local_softsysvideo') . ': ') .
-    html_writer::tag('span', '', ['id' => 'ssv-detail-subject'])
-);
-$statusrow = html_writer::tag(
-    'p',
-    html_writer::tag('strong', get_string('ticket_status', 'local_softsysvideo') . ': ') .
-    html_writer::tag('span', '', ['id' => 'ssv-detail-status'])
-);
-$priorityrow = html_writer::tag(
-    'p',
-    html_writer::tag('strong', get_string('ticket_priority', 'local_softsysvideo') . ': ') .
-    html_writer::tag('span', '', ['id' => 'ssv-detail-priority'])
-);
-$daterow = html_writer::tag(
-    'p',
-    html_writer::tag('strong', get_string('ticket_date', 'local_softsysvideo') . ': ') .
-    html_writer::tag('span', '', ['id' => 'ssv-detail-date'])
-);
+    // Ticket info card (hidden until data loads).
+    $subjectrow = html_writer::tag(
+        'p',
+        html_writer::tag('strong', get_string('ticket_subject', 'local_softsysvideo') . ': ') .
+        html_writer::tag('span', '', ['id' => 'ssv-detail-subject'])
+    );
+    $statusrow = html_writer::tag(
+        'p',
+        html_writer::tag('strong', get_string('ticket_status', 'local_softsysvideo') . ': ') .
+        html_writer::tag('span', '', ['id' => 'ssv-detail-status'])
+    );
+    $priorityrow = html_writer::tag(
+        'p',
+        html_writer::tag('strong', get_string('ticket_priority', 'local_softsysvideo') . ': ') .
+        html_writer::tag('span', '', ['id' => 'ssv-detail-priority'])
+    );
+    $daterow = html_writer::tag(
+        'p',
+        html_writer::tag('strong', get_string('ticket_date', 'local_softsysvideo') . ': ') .
+        html_writer::tag('span', '', ['id' => 'ssv-detail-date'])
+    );
 
-echo html_writer::div(
-    html_writer::div($subjectrow . $statusrow . $priorityrow . $daterow, 'card-body'),
-    'card mb-4 d-none',
-    ['id' => 'ssv-detail-card']
-);
+    echo html_writer::div(
+        html_writer::div($subjectrow . $statusrow . $priorityrow . $daterow, 'card-body'),
+        'card mb-4 d-none',
+        ['id' => 'ssv-detail-card']
+    );
 
-// Messages section (hidden until data loads).
-$messagesheading = html_writer::tag('h4', get_string('messages_title', 'local_softsysvideo'), ['class' => 'mb-3']);
-$timeline = html_writer::div('', '', ['id' => 'ssv-detail-timeline']);
-echo html_writer::div(
-    $messagesheading . $timeline,
-    'd-none',
-    ['id' => 'ssv-detail-messages']
-);
+    // Messages section (hidden until data loads).
+    $messagesheading = html_writer::tag('h4', get_string('messages_title', 'local_softsysvideo'), ['class' => 'mb-3']);
+    $timeline = html_writer::div('', '', ['id' => 'ssv-detail-timeline']);
+    echo html_writer::div(
+        $messagesheading . $timeline,
+        'd-none',
+        ['id' => 'ssv-detail-messages']
+    );
+}
 
 echo html_writer::end_div();
 echo $OUTPUT->footer();

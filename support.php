@@ -41,7 +41,15 @@ $apiurl = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: 'https://a
 $pluginkey = get_config('local_softsysvideo', 'softsysvideo_plugin_key') ?: '';
 
 if ($isconnected) {
-    $PAGE->requires->js_call_amd('local_softsysvideo/support_list', 'init', [$apiurl, $pluginkey, $CFG->wwwroot]);
+    $jsstrings = [
+        'no_tickets' => get_string('no_tickets', 'local_softsysvideo'),
+        'submit_ticket' => get_string('submit_ticket', 'local_softsysvideo'),
+        'submitting' => get_string('loading', 'local_softsysvideo'),
+        'ticket_created' => get_string('ticket_created', 'local_softsysvideo'),
+        'previous' => get_string('previous', 'local_softsysvideo'),
+        'next' => get_string('next', 'local_softsysvideo'),
+    ];
+    $PAGE->requires->js_call_amd('local_softsysvideo/support_list', 'init', [$apiurl, $pluginkey, $CFG->wwwroot, $jsstrings]);
 }
 
 // Build plugin navigation.

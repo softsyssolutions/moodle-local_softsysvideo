@@ -27,6 +27,7 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
     var apiUrl = '';
     var pluginKey = '';
     var wwwroot = '';
+    var strings = {};
     var currentOffset = 0;
     var limit = 20;
 
@@ -71,20 +72,26 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         var prevDisabled = offset <= 0 ? ' disabled' : '';
         var nextDisabled = (offset + limit) >= total ? ' disabled' : '';
 
-        pag.innerHTML =
-            '<button class="btn btn-sm btn-outline-secondary' + prevDisabled + '" id="ssv-sup-prev">' +
-            '\u2039 Anterior</button>' +
-            '<button class="btn btn-sm btn-outline-secondary' + nextDisabled + '" id="ssv-sup-next">' +
-            'Siguiente \u203a</button>';
+        pag.innerHTML = '';
 
-        var prevBtn = document.getElementById('ssv-sup-prev');
-        if (prevBtn && offset > 0) {
+        var prevBtn = document.createElement('button');
+        prevBtn.className = 'btn btn-sm btn-outline-secondary' + prevDisabled;
+        prevBtn.id = 'ssv-sup-prev';
+        prevBtn.textContent = '\u2039 ' + (strings.previous || 'Previous');
+        pag.appendChild(prevBtn);
+
+        var nextBtn = document.createElement('button');
+        nextBtn.className = 'btn btn-sm btn-outline-secondary' + nextDisabled;
+        nextBtn.id = 'ssv-sup-next';
+        nextBtn.textContent = (strings.next || 'Next') + ' \u203a';
+        pag.appendChild(nextBtn);
+
+        if (offset > 0) {
             prevBtn.addEventListener('click', function() {
                 loadTickets(offset - limit);
             });
         }
-        var nextBtn = document.getElementById('ssv-sup-next');
-        if (nextBtn && (offset + limit) < total) {
+        if ((offset + limit) < total) {
             nextBtn.addEventListener('click', function() {
                 loadTickets(offset + limit);
             });
@@ -99,23 +106,50 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
     function renderTable(tickets) {
         var tbody = document.getElementById('ssv-support-tbody');
         if (!tbody) { return; }
+        tbody.innerHTML = '';
 
         if (!tickets || tickets.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No hay tickets de soporte.</td></tr>';
+            var emptyRow = document.createElement('tr');
+            var emptyCell = document.createElement('td');
+            emptyCell.setAttribute('colspan', '4');
+            emptyCell.className = 'text-center text-muted';
+            emptyCell.textContent = strings.no_tickets || 'No support tickets found.';
+            emptyRow.appendChild(emptyCell);
+            tbody.appendChild(emptyRow);
             return;
         }
 
-        tbody.innerHTML = tickets.map(function(ticket) {
-            var subjectLink = '<a href="' + wwwroot + '/local/softsysvideo/support_detail.php?id=' +
-                encodeURIComponent(ticket.id) + '">' +
-                (ticket.subject || '\u2014') + '</a>';
-            var statusBadge = '<span class="' + statusBadgeClass(ticket.status) + '">' +
-                (ticket.status || '\u2014') + '</span>';
-            var priority = ticket.priority || '\u2014';
-            var date = ticket.created_at ? new Date(ticket.created_at).toLocaleString() : '\u2014';
-            return '<tr><td>' + subjectLink + '</td><td>' + statusBadge + '</td><td>' +
-                priority + '</td><td>' + date + '</td></tr>';
-        }).join('');
+        tickets.forEach(function(ticket) {
+            var tr = document.createElement('tr');
+
+            // Subject cell with link.
+            var tdSubject = document.createElement('td');
+            var link = document.createElement('a');
+            link.href = wwwroot + '/local/softsysvideo/support_detail.php?id=' + encodeURIComponent(ticket.id);
+            link.textContent = ticket.subject || '\u2014';
+            tdSubject.appendChild(link);
+            tr.appendChild(tdSubject);
+
+            // Status cell with badge.
+            var tdStatus = document.createElement('td');
+            var badge = document.createElement('span');
+            badge.className = statusBadgeClass(ticket.status);
+            badge.textContent = ticket.status || '\u2014';
+            tdStatus.appendChild(badge);
+            tr.appendChild(tdStatus);
+
+            // Priority cell.
+            var tdPriority = document.createElement('td');
+            tdPriority.textContent = ticket.priority || '\u2014';
+            tr.appendChild(tdPriority);
+
+            // Date cell.
+            var tdDate = document.createElement('td');
+            tdDate.textContent = ticket.created_at ? new Date(ticket.created_at).toLocaleString() : '\u2014';
+            tr.appendChild(tdDate);
+
+            tbody.appendChild(tr);
+        });
     }
 
     /**
@@ -139,8 +173,14 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             var tickets = data.tickets || [];
             var total = data.total || 0;
 
+            // Clear any previous alerts.
+            var errAlert = document.getElementById('ssv-support-error');
+            if (errAlert) { errAlert.classList.add('d-none'); }
+            var successAlert = document.getElementById('ssv-support-success');
+            if (successAlert) { successAlert.classList.add('d-none'); }
+
             var count = document.getElementById('ssv-support-count');
-            if (count) { count.textContent = total + ' ticket(s) encontrado(s).'; }
+            if (count) { count.textContent = total + ' ticket(s)'; }
 
             renderTable(tickets);
             renderPagination(offset, total);
@@ -185,8 +225,14 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
                 if (!subject || !subject.value.trim()) { return; }
                 if (!description || !description.value.trim()) { return; }
 
+                // Clear any previous alerts.
+                var errPrev = document.getElementById('ssv-support-error');
+                if (errPrev) { errPrev.classList.add('d-none'); }
+                var successPrev = document.getElementById('ssv-support-success');
+                if (successPrev) { successPrev.classList.add('d-none'); }
+
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Enviando...';
+                submitBtn.textContent = strings.submitting || 'Loading...';
 
                 var body = {
                     subject: subject.value.trim(),
@@ -221,14 +267,14 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
                     if (formDiv)    { formDiv.classList.add('d-none'); }
 
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Enviar ticket';
+                    submitBtn.textContent = strings.submit_ticket || 'Submit ticket';
 
                     // Reload the list from the first page.
                     loadTickets(0);
                 })
                 .catch(function() {
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Enviar ticket';
+                    submitBtn.textContent = strings.submit_ticket || 'Submit ticket';
                     var err = document.getElementById('ssv-support-error');
                     if (err) { err.classList.remove('d-none'); }
                 });
@@ -243,11 +289,13 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
          * @param {string} url       Base API URL.
          * @param {string} key       Plugin API key (Bearer token).
          * @param {string} siteroot  Moodle wwwroot for building detail links.
+         * @param {Object} strs      Translated UI strings from PHP.
          */
-        init: function(url, key, siteroot) {
+        init: function(url, key, siteroot, strs) {
             apiUrl    = url;
             pluginKey = key;
             wwwroot   = siteroot;
+            strings   = strs || {};
 
             initCreateForm();
             loadTickets(0);

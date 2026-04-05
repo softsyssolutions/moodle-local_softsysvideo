@@ -26,6 +26,7 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
 
     var apiUrl = '';
     var pluginKey = '';
+    var strings = {};
 
     /**
      * Map a ticket status value to a Bootstrap badge class.
@@ -67,8 +68,11 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         if (subjectEl)  { subjectEl.textContent = ticket.subject || '\u2014'; }
 
         if (statusEl) {
-            statusEl.innerHTML = '<span class="' + statusBadgeClass(ticket.status) + '">' +
-                (ticket.status || '\u2014') + '</span>';
+            statusEl.innerHTML = '';
+            var badge = document.createElement('span');
+            badge.className = statusBadgeClass(ticket.status);
+            badge.textContent = ticket.status || '\u2014';
+            statusEl.appendChild(badge);
         }
 
         if (priorityEl) { priorityEl.textContent = ticket.priority || '\u2014'; }
@@ -90,22 +94,41 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
     function renderMessages(messages) {
         var timeline = document.getElementById('ssv-detail-timeline');
         if (!timeline) { return; }
+        timeline.innerHTML = '';
 
         if (!messages || messages.length === 0) {
-            timeline.innerHTML = '<p class="text-muted">No hay mensajes en este ticket.</p>';
+            var emptyMsg = document.createElement('p');
+            emptyMsg.className = 'text-muted';
+            emptyMsg.textContent = strings.no_messages || 'No messages in this ticket.';
+            timeline.appendChild(emptyMsg);
         } else {
-            timeline.innerHTML = messages.map(function(msg) {
-                var author = msg.author_name || msg.author_email || 'System';
-                var date   = msg.created_at ? new Date(msg.created_at).toLocaleString() : '\u2014';
-                var body   = msg.body || '';
-                return '<div class="card mb-3">' +
-                    '<div class="card-header d-flex justify-content-between align-items-center">' +
-                    '<strong>' + author + '</strong>' +
-                    '<small class="text-muted">' + date + '</small>' +
-                    '</div>' +
-                    '<div class="card-body">' + body + '</div>' +
-                    '</div>';
-            }).join('');
+            messages.forEach(function(msg) {
+                var card = document.createElement('div');
+                card.className = 'card mb-3';
+
+                var header = document.createElement('div');
+                header.className = 'card-header d-flex justify-content-between align-items-center';
+
+                var authorEl = document.createElement('strong');
+                authorEl.textContent = msg.author_name || msg.author_email ||
+                    (strings.system_author || 'System');
+                header.appendChild(authorEl);
+
+                var dateEl = document.createElement('small');
+                dateEl.className = 'text-muted';
+                dateEl.textContent = msg.created_at ? new Date(msg.created_at).toLocaleString() : '\u2014';
+                header.appendChild(dateEl);
+
+                card.appendChild(header);
+
+                var bodyEl = document.createElement('div');
+                bodyEl.className = 'card-body';
+                // Body is HTML from Odoo messages, already sanitized server-side.
+                bodyEl.innerHTML = msg.body || '';
+                card.appendChild(bodyEl);
+
+                timeline.appendChild(card);
+            });
         }
 
         var messagesSection = document.getElementById('ssv-detail-messages');
@@ -119,10 +142,12 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
          * @param {string} url       Base API URL.
          * @param {string} key       Plugin API key (Bearer token).
          * @param {number} ticketId  ID of the ticket to display.
+         * @param {Object} strs      Translated UI strings from PHP.
          */
-        init: function(url, key, ticketId) {
+        init: function(url, key, ticketId, strs) {
             apiUrl    = url;
             pluginKey = key;
+            strings   = strs || {};
 
             showSpinner();
 

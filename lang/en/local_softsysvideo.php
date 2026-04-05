@@ -119,3 +119,4 @@ $string['priority_low'] = 'Low';
 $string['priority_normal'] = 'Normal';
 $string['priority_high'] = 'High';
 $string['messages_title'] = 'Messages';
+$string['no_messages'] = 'No messages in this ticket.';
