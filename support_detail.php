@@ -139,8 +139,17 @@ if (!$isconnected) {
         html_writer::tag('span', '', ['id' => 'ssv-detail-date'])
     );
 
+    $descrow = html_writer::div(
+        '',
+        'mt-3 p-3 bg-light rounded d-none',
+        ['id' => 'ssv-detail-description']
+    );
+
     echo html_writer::div(
-        html_writer::div($subjectrow . $statusrow . $priorityrow . $daterow, 'card-body'),
+        html_writer::div(
+            $subjectrow . $statusrow . $priorityrow . $daterow . $descrow,
+            'card-body'
+        ),
         'card mb-4 d-none',
         ['id' => 'ssv-detail-card']
     );
