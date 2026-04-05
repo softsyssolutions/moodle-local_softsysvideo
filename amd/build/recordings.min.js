@@ -50,15 +50,6 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
     }
 
     function initFilters() {
-        var toggleBtn = document.getElementById('ssv-filter-toggle');
-        var panel = document.getElementById('ssv-filter-panel');
-        if (toggleBtn && panel) {
-            toggleBtn.addEventListener('click', function() {
-                var hidden = panel.classList.contains('d-none');
-                panel.classList.toggle('d-none');
-                toggleBtn.textContent = hidden ? (strs.hide_filters || 'Hide filters') : (strs.show_filters || 'Show filters');
-            });
-        }
         var applyBtn = document.getElementById('ssv-filter-apply');
         if (applyBtn) {
             applyBtn.addEventListener('click', function() {
