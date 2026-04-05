@@ -70,6 +70,13 @@ define(['core/ajax', 'core/notification'], function() {
                 : '\u2014';
         }
 
+        // Show problem description if available.
+        var descEl = document.getElementById('ssv-detail-description');
+        if (descEl && ticket.description) {
+            descEl.innerHTML = ticket.description;
+            descEl.classList.remove('d-none');
+        }
+
         var card = document.getElementById('ssv-detail-card');
         if (card) { card.classList.remove('d-none'); }
     }
