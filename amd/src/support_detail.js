@@ -70,13 +70,6 @@ define(['core/ajax', 'core/notification'], function() {
                 : '\u2014';
         }
 
-        // Show description if available.
-        var descEl = document.getElementById('ssv-detail-description');
-        if (descEl && ticket.description) {
-            descEl.innerHTML = ticket.description;
-            descEl.classList.remove('d-none');
-        }
-
         var card = document.getElementById('ssv-detail-card');
         if (card) { card.classList.remove('d-none'); }
     }
@@ -116,29 +109,49 @@ define(['core/ajax', 'core/notification'], function() {
                 bodyEl.className = 'card-body';
                 bodyEl.innerHTML = msg.body || '';
 
-                // Attachments (images).
+                // Attachments (images) — loaded via fetch with auth.
                 if (msg.attachments && msg.attachments.length > 0) {
                     var attDiv = document.createElement('div');
                     attDiv.className = 'mt-3 d-flex flex-wrap gap-2';
 
                     msg.attachments.forEach(function(att) {
                         var link = document.createElement('a');
-                        // Build full URL for the moodle-authenticated image proxy.
-                        link.href = apiUrl + att.url;
                         link.target = '_blank';
                         link.rel = 'noopener noreferrer';
                         link.title = att.name || 'Attachment';
 
                         var img = document.createElement('img');
-                        img.src = apiUrl + att.url;
                         img.alt = att.name || 'Attachment';
-                        img.style.cssText = 'max-width:200px;max-height:150px;border-radius:4px;border:1px solid #dee2e6';
-                        img.onerror = function() {
-                            // If image fails, show a text link instead.
+                        img.style.cssText =
+                            'max-width:200px;max-height:150px;' +
+                            'border-radius:4px;border:1px solid #dee2e6';
+
+                        // Fetch image with Bearer auth, then set as blob URL.
+                        var imgUrl = apiUrl + att.url;
+                        fetch(imgUrl, {
+                            headers: {
+                                'Authorization': 'Bearer ' + pluginKey
+                            }
+                        })
+                        .then(function(r) {
+                            if (!r.ok) { throw new Error('HTTP ' + r.status); }
+                            return r.blob();
+                        })
+                        .then(function(blob) {
+                            var blobUrl = URL.createObjectURL(blob);
+                            img.src = blobUrl;
+                            link.href = blobUrl;
+                        })
+                        .catch(function() {
+                            // Fallback: show filename as text link.
                             link.textContent = att.name || 'Attachment';
-                            link.className = 'btn btn-sm btn-outline-secondary';
-                            if (link.contains(img)) { link.removeChild(img); }
-                        };
+                            link.href = imgUrl;
+                            link.className =
+                                'btn btn-sm btn-outline-secondary';
+                            if (link.contains(img)) {
+                                link.removeChild(img);
+                            }
+                        });
 
                         link.appendChild(img);
                         attDiv.appendChild(link);
