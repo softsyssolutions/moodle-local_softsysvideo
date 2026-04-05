@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_softsysvideo';
-$plugin->version   = 2026032300;
+$plugin->version   = 2026040500;
 $plugin->requires  = 2022041200; // Moodle 4.1 or higher.
 $plugin->maturity  = MATURITY_BETA;
-$plugin->release   = '0.3.0';
+$plugin->release   = '0.4.0';
 $plugin->supported = [401, 501]; // Moodle 4.1 to 5.1.
