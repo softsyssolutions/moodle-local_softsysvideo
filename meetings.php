@@ -136,17 +136,29 @@ if (!$isconnected) {
     echo $filterbtn;
 
     // Collapsible filter panel.
+    $statusoptions = [
+        '' => get_string('all_statuses', 'local_softsysvideo'),
+        'active' => get_string('active_meetings', 'local_softsysvideo'),
+        'ended' => get_string('ended_meetings', 'local_softsysvideo'),
+    ];
     $statusselect = html_writer::select(
-        ['' => get_string('all_statuses', 'local_softsysvideo'),
-         'active' => get_string('active_meetings', 'local_softsysvideo'),
-         'ended' => get_string('ended_meetings', 'local_softsysvideo')],
-        'ssv-filter-status', '', false, ['id' => 'ssv-filter-status', 'class' => 'form-control']
+        $statusoptions,
+        'ssv-filter-status',
+        '',
+        false,
+        ['id' => 'ssv-filter-status', 'class' => 'form-control']
     );
+    $recordingoptions = [
+        '' => '-- ' . get_string('filters', 'local_softsysvideo') . ' --',
+        'true' => get_string('with_recording', 'local_softsysvideo'),
+        'false' => get_string('without_recording', 'local_softsysvideo'),
+    ];
     $recordingselect = html_writer::select(
-        ['' => '-- ' . get_string('filters', 'local_softsysvideo') . ' --',
-         'true' => get_string('with_recording', 'local_softsysvideo'),
-         'false' => get_string('without_recording', 'local_softsysvideo')],
-        'ssv-filter-recording', '', false, ['id' => 'ssv-filter-recording', 'class' => 'form-control']
+        $recordingoptions,
+        'ssv-filter-recording',
+        '',
+        false,
+        ['id' => 'ssv-filter-recording', 'class' => 'form-control']
     );
     $datefrom = html_writer::empty_tag('input', [
         'type' => 'date', 'id' => 'ssv-filter-date-from', 'class' => 'form-control',
@@ -154,37 +166,75 @@ if (!$isconnected) {
     $dateto = html_writer::empty_tag('input', [
         'type' => 'date', 'id' => 'ssv-filter-date-to', 'class' => 'form-control',
     ]);
+    $sortbyoptions = [
+        'started_at' => get_string('sort_date', 'local_softsysvideo'),
+        'duration_seconds' => get_string('sort_duration', 'local_softsysvideo'),
+        'participant_count' => get_string('sort_participants', 'local_softsysvideo'),
+        'name' => get_string('sort_name', 'local_softsysvideo'),
+    ];
     $sortbyselect = html_writer::select(
-        ['started_at' => get_string('sort_date', 'local_softsysvideo'),
-         'duration_seconds' => get_string('sort_duration', 'local_softsysvideo'),
-         'participant_count' => get_string('sort_participants', 'local_softsysvideo'),
-         'name' => get_string('sort_name', 'local_softsysvideo')],
-        'ssv-filter-sort-by', 'started_at', false, ['id' => 'ssv-filter-sort-by', 'class' => 'form-control']
+        $sortbyoptions,
+        'ssv-filter-sort-by',
+        'started_at',
+        false,
+        ['id' => 'ssv-filter-sort-by', 'class' => 'form-control']
     );
+    $sortorderoptions = [
+        'desc' => get_string('descending', 'local_softsysvideo'),
+        'asc' => get_string('ascending', 'local_softsysvideo'),
+    ];
     $sortorderselect = html_writer::select(
-        ['desc' => get_string('descending', 'local_softsysvideo'),
-         'asc' => get_string('ascending', 'local_softsysvideo')],
-        'ssv-filter-sort-order', 'desc', false, ['id' => 'ssv-filter-sort-order', 'class' => 'form-control']
+        $sortorderoptions,
+        'ssv-filter-sort-order',
+        'desc',
+        false,
+        ['id' => 'ssv-filter-sort-order', 'class' => 'form-control']
     );
     $applybtn = html_writer::tag('button', get_string('apply_filters', 'local_softsysvideo'), [
         'class' => 'btn btn-sm btn-primary', 'id' => 'ssv-filter-apply', 'type' => 'button',
     ]);
 
-    $row1 = html_writer::div(
-        html_writer::div(html_writer::tag('label', get_string('status', 'local_softsysvideo'), ['for' => 'ssv-filter-status']) . $statusselect, 'col-md-6') .
-        html_writer::div(html_writer::tag('label', get_string('recordings', 'local_softsysvideo'), ['for' => 'ssv-filter-recording']) . $recordingselect, 'col-md-6'),
-        'row mb-2'
+    $statuslabel = html_writer::tag(
+        'label',
+        get_string('status', 'local_softsysvideo'),
+        ['for' => 'ssv-filter-status']
     );
-    $row2 = html_writer::div(
-        html_writer::div(html_writer::tag('label', get_string('date_from', 'local_softsysvideo'), ['for' => 'ssv-filter-date-from']) . $datefrom, 'col-md-6') .
-        html_writer::div(html_writer::tag('label', get_string('date_to', 'local_softsysvideo'), ['for' => 'ssv-filter-date-to']) . $dateto, 'col-md-6'),
-        'row mb-2'
+    $statuscol = html_writer::div($statuslabel . $statusselect, 'col-md-6');
+    $reclabel = html_writer::tag(
+        'label',
+        get_string('recordings', 'local_softsysvideo'),
+        ['for' => 'ssv-filter-recording']
     );
-    $row3 = html_writer::div(
-        html_writer::div(html_writer::tag('label', get_string('sort_by', 'local_softsysvideo'), ['for' => 'ssv-filter-sort-by']) . $sortbyselect, 'col-md-6') .
-        html_writer::div(html_writer::tag('label', get_string('sort_order', 'local_softsysvideo'), ['for' => 'ssv-filter-sort-order']) . $sortorderselect, 'col-md-6'),
-        'row mb-2'
+    $reccol = html_writer::div($reclabel . $recordingselect, 'col-md-6');
+    $row1 = html_writer::div($statuscol . $reccol, 'row mb-2');
+
+    $datefromlabel = html_writer::tag(
+        'label',
+        get_string('date_from', 'local_softsysvideo'),
+        ['for' => 'ssv-filter-date-from']
     );
+    $datefromcol = html_writer::div($datefromlabel . $datefrom, 'col-md-6');
+    $datetolabel = html_writer::tag(
+        'label',
+        get_string('date_to', 'local_softsysvideo'),
+        ['for' => 'ssv-filter-date-to']
+    );
+    $datetocol = html_writer::div($datetolabel . $dateto, 'col-md-6');
+    $row2 = html_writer::div($datefromcol . $datetocol, 'row mb-2');
+
+    $sortbylabel = html_writer::tag(
+        'label',
+        get_string('sort_by', 'local_softsysvideo'),
+        ['for' => 'ssv-filter-sort-by']
+    );
+    $sortbycol = html_writer::div($sortbylabel . $sortbyselect, 'col-md-6');
+    $sortorderlabel = html_writer::tag(
+        'label',
+        get_string('sort_order', 'local_softsysvideo'),
+        ['for' => 'ssv-filter-sort-order']
+    );
+    $sortordercol = html_writer::div($sortorderlabel . $sortorderselect, 'col-md-6');
+    $row3 = html_writer::div($sortbycol . $sortordercol, 'row mb-2');
 
     $filterpanel = html_writer::div(
         html_writer::div($row1 . $row2 . $row3 . $applybtn, 'card-body'),

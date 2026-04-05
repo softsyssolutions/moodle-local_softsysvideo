@@ -124,7 +124,7 @@ if (!$isconnected) {
     // Analytics charts.
     echo html_writer::tag('h4', get_string('usage_over_time', 'local_softsysvideo'), ['class' => 'mt-4 mb-3']);
     echo html_writer::div(
-        $OUTPUT->pix_icon('i/loading', '', 'moodle', ['class' => 'icon-lg']),
+        $OUTPUT->pix_icon('i/loading', get_string('loading', 'local_softsysvideo'), 'moodle', ['class' => 'icon-lg']),
         'text-center py-3',
         ['id' => 'ssv-analytics-spinner']
     );
