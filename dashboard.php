@@ -155,7 +155,6 @@ if (!$isconnected) {
         'row g-3 mb-4',
         ['id' => 'ssv-charts-row']
     );
-
 }
 
 echo html_writer::end_div();

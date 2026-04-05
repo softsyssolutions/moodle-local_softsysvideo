@@ -111,7 +111,7 @@ if (!$isconnected) {
         ['id' => 'ssv-support-success']
     );
 
-    // "Create Ticket" button.
+    // Create Ticket button.
     echo html_writer::tag(
         'button',
         get_string('create_ticket', 'local_softsysvideo'),
