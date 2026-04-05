@@ -112,7 +112,7 @@ if (!$isconnected) {
 
     // Spinner (Moodle native).
     echo html_writer::div(
-        $OUTPUT->pix_icon('i/loading', get_string('loading', 'local_softsysvideo'), 'moodle', ['class' => 'icon-lg']),
+        $OUTPUT->pix_icon('i/loading', '', 'moodle', ['class' => 'icon-lg']),
         'text-center py-3',
         ['id' => 'ssv-detail-spinner']
     );
