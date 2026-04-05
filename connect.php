@@ -173,9 +173,13 @@ if ($message) {
 
 if ($isconnected) {
     // Connected state card.
-    $orgrow = html_writer::tag('p', html_writer::tag('strong', get_string('organization_label', 'local_softsysvideo') . ':') . ' ' . htmlspecialchars($tenantname ?: '—'));
+    $orglabel = get_string('organization_label', 'local_softsysvideo');
+    $orgstrong = html_writer::tag('strong', $orglabel . ':');
+    $orgrow = html_writer::tag('p', $orgstrong . ' ' . htmlspecialchars($tenantname ?: '—'));
     $apicodehtml = html_writer::tag('code', htmlspecialchars($apiurl));
-    $apirow = html_writer::tag('p', html_writer::tag('strong', get_string('api_url_label', 'local_softsysvideo') . ':') . ' ' . $apicodehtml);
+    $apilabel = get_string('api_url_label', 'local_softsysvideo');
+    $apistrong = html_writer::tag('strong', $apilabel . ':');
+    $apirow = html_writer::tag('p', $apistrong . ' ' . $apicodehtml);
     $confirmstr = get_string('confirm_disconnect', 'local_softsysvideo');
     $disconnectbtn = html_writer::tag(
         'button',

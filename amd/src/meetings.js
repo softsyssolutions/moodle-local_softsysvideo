@@ -25,9 +25,49 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
 
     var apiUrl = '';
     var pluginKey = '';
+    var strs = {};
     var currentPage = 1;
     var currentSearch = '';
     var debounceTimer = null;
+
+    function buildFilterParams() {
+        var params = '';
+        var status = document.getElementById('ssv-filter-status');
+        if (status && status.value) { params += '&status=' + encodeURIComponent(status.value); }
+        var recording = document.getElementById('ssv-filter-recording');
+        if (recording && recording.value) { params += '&has_recording=' + encodeURIComponent(recording.value); }
+        var dateFrom = document.getElementById('ssv-filter-date-from');
+        if (dateFrom && dateFrom.value) {
+            params += '&date_from=' + Math.floor(new Date(dateFrom.value + 'T00:00:00').getTime() / 1000);
+        }
+        var dateTo = document.getElementById('ssv-filter-date-to');
+        if (dateTo && dateTo.value) {
+            params += '&date_to=' + Math.floor(new Date(dateTo.value + 'T23:59:59').getTime() / 1000);
+        }
+        var sortBy = document.getElementById('ssv-filter-sort-by');
+        if (sortBy && sortBy.value) { params += '&sort_by=' + encodeURIComponent(sortBy.value); }
+        var sortOrder = document.getElementById('ssv-filter-sort-order');
+        if (sortOrder && sortOrder.value) { params += '&sort_order=' + encodeURIComponent(sortOrder.value); }
+        return params;
+    }
+
+    function initFilters() {
+        var toggleBtn = document.getElementById('ssv-filter-toggle');
+        var panel = document.getElementById('ssv-filter-panel');
+        if (toggleBtn && panel) {
+            toggleBtn.addEventListener('click', function() {
+                var hidden = panel.classList.contains('d-none');
+                panel.classList.toggle('d-none');
+                toggleBtn.textContent = hidden ? (strs.hide_filters || 'Hide filters') : (strs.show_filters || 'Show filters');
+            });
+        }
+        var applyBtn = document.getElementById('ssv-filter-apply');
+        if (applyBtn) {
+            applyBtn.addEventListener('click', function() {
+                loadPage(1, currentSearch);
+            });
+        }
+    }
 
     function showSpinner() {
         var spinner = document.getElementById('ssv-meetings-spinner');
@@ -72,6 +112,7 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
 
         var url = apiUrl + '/api/moodle/meetings?page=' + page + '&per_page=20';
         if (search) { url += '&search=' + encodeURIComponent(search); }
+        url += buildFilterParams();
 
         fetch(url, {headers: {'Authorization': 'Bearer ' + pluginKey}})
         .then(function(r) { return r.json(); })
@@ -112,9 +153,10 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
     }
 
     return {
-        init: function(url, key) {
+        init: function(url, key, filterStrs) {
             apiUrl = url;
             pluginKey = key;
+            strs = filterStrs || {};
 
             var searchInput = document.getElementById('ssv-meetings-search');
             if (searchInput) {
@@ -127,6 +169,7 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
                 });
             }
 
+            initFilters();
             loadPage(1, '');
         }
     };
