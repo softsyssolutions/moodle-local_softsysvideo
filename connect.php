@@ -48,9 +48,35 @@ $messagetype = 'info';
 // Handle form submission.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
     if ($action === 'disconnect') {
+        // Notify the API Worker so the connection record is removed from the Dashboard.
+        // Best-effort: if the call fails, we still disconnect locally.
+        $connectionid = get_config('local_softsysvideo', 'softsysvideo_connection_id');
+        $pluginkey = get_config('local_softsysvideo', 'softsysvideo_plugin_key');
+        if (!empty($connectionid) && !empty($pluginkey)) {
+            $disconnecturl = 'https://api.softsysvideo.com/api/moodle/disconnect';
+            $payload = json_encode(['connection_id' => $connectionid]);
+            $ch = curl_init($disconnecturl);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $payload,
+                CURLOPT_HTTPHEADER => [
+                    'Content-Type: application/json',
+                    'Authorization: Bearer ' . $pluginkey,
+                ],
+                CURLOPT_TIMEOUT => 10,
+            ]);
+            curl_exec($ch);
+            curl_close($ch);
+        }
+
         $configkeys = [
-            'softsysvideo_api_url', 'softsysvideo_plugin_key', 'softsysvideo_shared_secret',
-            'softsysvideo_tenant_name', 'cache_credit_balance', 'cache_updated_at',
+            'softsysvideo_api_url',
+            'softsysvideo_plugin_key',
+            'softsysvideo_shared_secret',
+            'softsysvideo_tenant_name',
+            'cache_credit_balance',
+            'cache_updated_at',
             'softsysvideo_connection_id',
         ];
         foreach ($configkeys as $key) {
