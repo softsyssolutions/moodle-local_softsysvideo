@@ -33,49 +33,21 @@ $PAGE->set_url(new moodle_url('/local/softsysvideo/dashboard.php'));
 $PAGE->set_title(get_string('dashboard', 'local_softsysvideo'));
 $PAGE->set_heading(get_string('pluginname', 'local_softsysvideo'));
 $PAGE->set_pagelayout('admin');
+$PAGE->navbar->add(get_string('pluginname', 'local_softsysvideo'),
+    new moodle_url('/local/softsysvideo/dashboard.php'));
+$PAGE->navbar->add(get_string('dashboard', 'local_softsysvideo'));
 
 $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
-$apiurl = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: 'https://api.softsysvideo.com';
-$pluginkey = get_config('local_softsysvideo', 'softsysvideo_plugin_key') ?: '';
 $tenantname = get_config('local_softsysvideo', 'softsysvideo_tenant_name') ?: 'SoftSys Video';
 
 if ($isconnected) {
-    $PAGE->requires->js_call_amd('local_softsysvideo/dashboard', 'init', [$apiurl, $pluginkey]);
-    $PAGE->requires->js_call_amd('local_softsysvideo/analytics', 'init', [$apiurl, $pluginkey]);
+    $PAGE->requires->js_call_amd('local_softsysvideo/dashboard', 'init');
+    $PAGE->requires->js_call_amd('local_softsysvideo/analytics', 'init');
 }
-
-// Build plugin navigation.
-$navlinks = [];
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/dashboard.php'),
-    get_string('dashboard', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-primary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/recordings.php'),
-    get_string('recordings', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-secondary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/meetings.php'),
-    get_string('meetings', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-secondary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/connect.php'),
-    get_string('connection', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-secondary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/support.php'),
-    get_string('support', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-danger']
-);
-$navhtml = html_writer::div(implode('', $navlinks), 'd-flex gap-2 mb-3 flex-wrap');
 
 echo $OUTPUT->header();
 echo html_writer::start_div('container-fluid py-3');
-echo $navhtml;
+echo local_softsysvideo_render_navigation('dashboard');
 
 if (!$isconnected) {
     echo $OUTPUT->notification(
@@ -88,22 +60,22 @@ if (!$isconnected) {
     );
 } else {
     // Header section.
-    $badgetext = get_string('connected', 'local_softsysvideo') . ' &mdash; ' . htmlspecialchars($tenantname);
+    $badgetext = get_string('connected', 'local_softsysvideo') . ' &mdash; ' . s($tenantname);
     $badge = html_writer::tag('span', $badgetext, ['class' => 'badge bg-success', 'id' => 'ssv-tenant-name']);
     $headercontent = html_writer::tag('h2', get_string('dashboard', 'local_softsysvideo'), ['class' => 'mb-0']);
     $headercontent .= $badge;
     echo html_writer::div(
         html_writer::div($headercontent, ''),
-        'd-flex align-items-center gap-3 mb-4'
+        'd-flex align-items-center mb-4 ssv-flex-gap'
     );
 
     // Stats cards.
     $statcard = function ($id, $colorclass, $labelkey) {
-        $inner = html_writer::div('&mdash;', 'display-6 fw-bold ' . $colorclass, ['id' => $id]);
-        $inner .= html_writer::div(get_string($labelkey, 'local_softsysvideo'), 'text-muted small mt-1');
+        $inner = html_writer::div('&mdash;', 'ssv-stat-value ' . $colorclass, ['id' => $id]);
+        $inner .= html_writer::div(get_string($labelkey, 'local_softsysvideo'), 'ssv-stat-label');
         return html_writer::div(
             html_writer::div($inner, 'card-body'),
-            'card text-center h-100'
+            'card ssv-stat-card text-center h-100'
         );
     };
     $statsrow = html_writer::div(

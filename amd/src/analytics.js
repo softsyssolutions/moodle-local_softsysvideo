@@ -21,14 +21,13 @@
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['core/chartjs-lazy'], function(Chart) {
+define(['core/ajax', 'core/chartjs-lazy'], function(Ajax, Chart) {
     return {
-        init: function(apiUrl, pluginKey) {
-            fetch(apiUrl + '/api/moodle/analytics?range=30d', {
-                headers: {'Authorization': 'Bearer ' + pluginKey}
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
+        init: function() {
+            Ajax.call([{
+                methodname: 'local_softsysvideo_get_analytics',
+                args: {range: '30d'}
+            }])[0].then(function(data) {
                 var spinner = document.getElementById('ssv-analytics-spinner');
                 if (spinner) { spinner.classList.add('d-none'); }
 
@@ -76,8 +75,8 @@ define(['core/chartjs-lazy'], function(Chart) {
                         }
                     });
                 }
-            })
-            .catch(function() {
+                return;
+            }).catch(function() {
                 var spinner = document.getElementById('ssv-analytics-spinner');
                 if (spinner) { spinner.classList.add('d-none'); }
                 var err = document.getElementById('ssv-analytics-error');

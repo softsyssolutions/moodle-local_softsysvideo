@@ -20,10 +20,8 @@
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['core/ajax', 'core/notification'], function() {
+define(['core/ajax'], function(Ajax) {
 
-    var apiUrl = '';
-    var pluginKey = '';
     var strings = {};
 
     function statusBadgeClass(status) {
@@ -46,34 +44,36 @@ define(['core/ajax', 'core/notification'], function() {
         if (el) { el.classList.add('d-none'); }
     }
 
-    function renderTicketCard(ticket) {
+    function renderTicketCard(data) {
         var subjectEl  = document.getElementById('ssv-detail-subject');
         var statusEl   = document.getElementById('ssv-detail-status');
         var priorityEl = document.getElementById('ssv-detail-priority');
         var dateEl     = document.getElementById('ssv-detail-date');
 
-        if (subjectEl)  { subjectEl.textContent = ticket.subject || '\u2014'; }
+        if (subjectEl)  { subjectEl.textContent = data.subject || '\u2014'; }
 
         if (statusEl) {
-            statusEl.innerHTML = '';
+            while (statusEl.firstChild) {
+                statusEl.removeChild(statusEl.firstChild);
+            }
             var badge = document.createElement('span');
-            badge.className = statusBadgeClass(ticket.status);
-            badge.textContent = ticket.status || '\u2014';
+            badge.className = statusBadgeClass(data.status);
+            badge.textContent = data.status || '\u2014';
             statusEl.appendChild(badge);
         }
 
-        if (priorityEl) { priorityEl.textContent = ticket.priority || '\u2014'; }
+        if (priorityEl) { priorityEl.textContent = data.priority || '\u2014'; }
 
         if (dateEl) {
-            dateEl.textContent = ticket.createdAt
-                ? new Date(ticket.createdAt).toLocaleString()
+            dateEl.textContent = data.created_at
+                ? new Date(data.created_at).toLocaleString()
                 : '\u2014';
         }
 
-        // Show problem description if available.
         var descEl = document.getElementById('ssv-detail-description');
-        if (descEl && ticket.description) {
-            descEl.innerHTML = ticket.description;
+        if (descEl && data.description) {
+            // HTML is sanitized server-side via format_text(FORMAT_HTML).
+            descEl.innerHTML = data.description;
             descEl.classList.remove('d-none');
         }
 
@@ -84,7 +84,9 @@ define(['core/ajax', 'core/notification'], function() {
     function renderMessages(messages) {
         var timeline = document.getElementById('ssv-detail-timeline');
         if (!timeline) { return; }
-        timeline.innerHTML = '';
+        while (timeline.firstChild) {
+            timeline.removeChild(timeline.firstChild);
+        }
 
         if (!messages || messages.length === 0) {
             var emptyMsg = document.createElement('p');
@@ -96,7 +98,6 @@ define(['core/ajax', 'core/notification'], function() {
                 var card = document.createElement('div');
                 card.className = 'card mb-3';
 
-                // Header: author + date.
                 var header = document.createElement('div');
                 header.className = 'card-header d-flex justify-content-between align-items-center';
 
@@ -111,60 +112,26 @@ define(['core/ajax', 'core/notification'], function() {
 
                 card.appendChild(header);
 
-                // Body: HTML content from Odoo (sanitized server-side).
                 var bodyEl = document.createElement('div');
                 bodyEl.className = 'card-body';
+                // HTML is sanitized server-side via format_text(FORMAT_HTML).
                 bodyEl.innerHTML = msg.body || '';
 
-                // Attachments (images) — loaded via fetch with auth.
                 if (msg.attachments && msg.attachments.length > 0) {
-                    var attDiv = document.createElement('div');
-                    attDiv.className = 'mt-3 d-flex flex-wrap gap-2';
-
+                    var attContainer = document.createElement('div');
+                    attContainer.className = 'mt-2';
                     msg.attachments.forEach(function(att) {
-                        var link = document.createElement('a');
-                        link.target = '_blank';
-                        link.rel = 'noopener noreferrer';
-                        link.title = att.name || 'Attachment';
-
-                        var img = document.createElement('img');
-                        img.alt = att.name || 'Attachment';
-                        img.style.cssText =
-                            'max-width:200px;max-height:150px;' +
-                            'border-radius:4px;border:1px solid #dee2e6';
-
-                        // Fetch image with Bearer auth, then set as blob URL.
-                        var imgUrl = apiUrl + att.url;
-                        fetch(imgUrl, {
-                            headers: {
-                                'Authorization': 'Bearer ' + pluginKey
-                            }
-                        })
-                        .then(function(r) {
-                            if (!r.ok) { throw new Error('HTTP ' + r.status); }
-                            return r.blob();
-                        })
-                        .then(function(blob) {
-                            var blobUrl = URL.createObjectURL(blob);
-                            img.src = blobUrl;
-                            link.href = blobUrl;
-                        })
-                        .catch(function() {
-                            // Fallback: show filename as text link.
-                            link.textContent = att.name || 'Attachment';
-                            link.href = imgUrl;
-                            link.className =
-                                'btn btn-sm btn-outline-secondary';
-                            if (link.contains(img)) {
-                                link.removeChild(img);
-                            }
-                        });
-
-                        link.appendChild(img);
-                        attDiv.appendChild(link);
+                        if (att.url && att.mimetype && att.mimetype.indexOf('image/') === 0) {
+                            var img = document.createElement('img');
+                            img.src = att.url;
+                            img.alt = att.name || 'attachment';
+                            img.className = 'd-block mb-2 rounded';
+                            img.style.maxWidth = '100%';
+                            img.style.maxHeight = '400px';
+                            attContainer.appendChild(img);
+                        }
                     });
-
-                    bodyEl.appendChild(attDiv);
+                    bodyEl.appendChild(attContainer);
                 }
 
                 card.appendChild(bodyEl);
@@ -177,28 +144,20 @@ define(['core/ajax', 'core/notification'], function() {
     }
 
     return {
-        init: function(url, key, ticketId, strs) {
-            apiUrl    = url;
-            pluginKey = key;
-            strings   = strs || {};
+        init: function(ticketId, strs) {
+            strings = strs || {};
 
             showSpinner();
 
-            fetch(apiUrl + '/api/moodle/support/tickets/' + ticketId, {
-                headers: {'Authorization': 'Bearer ' + pluginKey}
-            })
-            .then(function(r) {
-                if (!r.ok) { throw new Error('HTTP ' + r.status); }
-                return r.json();
-            })
-            .then(function(data) {
+            Ajax.call([{
+                methodname: 'local_softsysvideo_get_ticket_detail',
+                args: {ticketid: ticketId}
+            }])[0].then(function(data) {
                 hideSpinner();
-                if (data.ticket) {
-                    renderTicketCard(data.ticket);
-                }
+                renderTicketCard(data);
                 renderMessages(data.messages || []);
-            })
-            .catch(function() {
+                return;
+            }).catch(function() {
                 hideSpinner();
                 var err = document.getElementById('ssv-detail-error');
                 if (err) { err.classList.remove('d-none'); }

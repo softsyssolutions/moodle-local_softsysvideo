@@ -19,6 +19,8 @@
  *
  * @package    local_softsysvideo
  * @covers     \local_softsysvideo\privacy\provider
+ * @covers     \local_softsysvideo\output\plugin_navigation
+ * @covers     \local_softsysvideo\api_client
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -65,7 +67,6 @@ final class plugin_test extends \advanced_testcase {
     public function test_capabilities_defined(): void {
         $this->resetAfterTest();
         $context = \context_system::instance();
-        // Simply verify the capability can be checked without error.
         $result = has_capability('local/softsysvideo:manage', $context, get_admin());
         $this->assertIsBool($result);
     }
@@ -83,5 +84,101 @@ final class plugin_test extends \advanced_testcase {
             has_capability('local/softsysvideo:manage', $context),
             'Admin should have local/softsysvideo:manage capability.'
         );
+    }
+
+    /**
+     * Test all three capabilities have corresponding lang strings.
+     *
+     * @covers \get_string
+     */
+    public function test_capability_lang_strings(): void {
+        $this->resetAfterTest();
+        $caps = ['manage', 'viewanalytics', 'viewcredits'];
+        foreach ($caps as $cap) {
+            $str = get_string('softsysvideo:' . $cap, 'local_softsysvideo');
+            $this->assertNotEmpty($str, "Lang string for softsysvideo:{$cap} should exist.");
+        }
+    }
+
+    /**
+     * Test plugin navigation renderable exports correct tab structure.
+     *
+     * @covers \local_softsysvideo\output\plugin_navigation
+     */
+    public function test_plugin_navigation_export(): void {
+        global $PAGE;
+        $this->resetAfterTest();
+
+        $nav = new \local_softsysvideo\output\plugin_navigation('dashboard');
+        $data = $nav->export_for_template($PAGE->get_renderer('core'));
+
+        $this->assertArrayHasKey('tabs', $data);
+        $this->assertCount(5, $data['tabs']);
+
+        $activecount = 0;
+        foreach ($data['tabs'] as $tab) {
+            $this->assertArrayHasKey('id', $tab);
+            $this->assertArrayHasKey('label', $tab);
+            $this->assertArrayHasKey('url', $tab);
+            $this->assertArrayHasKey('active', $tab);
+            if ($tab['active']) {
+                $activecount++;
+                $this->assertEquals('dashboard', $tab['id']);
+            }
+        }
+        $this->assertEquals(1, $activecount, 'Exactly one tab should be active.');
+    }
+
+    /**
+     * Test API client constructor and that from_config throws when not connected.
+     *
+     * @covers \local_softsysvideo\api_client::from_config
+     */
+    public function test_api_client_not_connected(): void {
+        $this->resetAfterTest();
+        unset_config('softsysvideo_plugin_key', 'local_softsysvideo');
+        unset_config('softsysvideo_api_url', 'local_softsysvideo');
+
+        $this->expectException(\moodle_exception::class);
+        \local_softsysvideo\api_client::from_config();
+    }
+
+    /**
+     * Test that web services are properly defined.
+     *
+     * @covers \local_softsysvideo\external\get_stats
+     */
+    public function test_services_defined(): void {
+        $this->resetAfterTest();
+        $services = [
+            'local_softsysvideo_get_stats',
+            'local_softsysvideo_get_analytics',
+            'local_softsysvideo_get_recordings',
+            'local_softsysvideo_get_meetings',
+            'local_softsysvideo_get_tickets',
+            'local_softsysvideo_get_ticket_detail',
+            'local_softsysvideo_create_ticket',
+        ];
+        $allfunctions = \core_component::get_component_classes_in_namespace(
+            'local_softsysvideo', 'external'
+        );
+        $this->assertNotEmpty($allfunctions, 'External functions should be defined.');
+    }
+
+    /**
+     * Test that the helper function renders navigation HTML.
+     *
+     * @covers ::local_softsysvideo_render_navigation
+     */
+    public function test_render_navigation(): void {
+        global $PAGE;
+        $this->resetAfterTest();
+        $PAGE->set_context(\context_system::instance());
+        $PAGE->set_url(new \moodle_url('/local/softsysvideo/dashboard.php'));
+
+        $html = local_softsysvideo_render_navigation('dashboard');
+        $this->assertStringContainsString('nav-tabs', $html);
+        $this->assertStringContainsString('active', $html);
+        $this->assertStringContainsString('dashboard.php', $html);
     }
 }

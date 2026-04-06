@@ -35,24 +35,23 @@ if ($hassiteconfig) {
         $wwwroot = $CFG->wwwroot;
 
         if ($isconnected) {
-            $dashboardurl = $wwwroot . '/local/softsysvideo/dashboard.php';
+            $dashboardurl = new \moodle_url('/local/softsysvideo/dashboard.php');
+            if (!CLI_SCRIPT && !AJAX_SCRIPT) {
+                redirect($dashboardurl);
+            }
             $connhtml = '
 <div class="card border-success mb-3">
   <div class="card-body p-3 text-center">
     <p class="mb-2">' . get_string('connected', 'local_softsysvideo') . '</p>
-    <a href="' . $dashboardurl . '" class="btn btn-primary">' .
+    <a href="' . $dashboardurl->out() . '" class="btn btn-primary">' .
             get_string('view_dashboard', 'local_softsysvideo') . '</a>
   </div>
-</div>
-<script>
-// Auto-redirect to dashboard when visiting settings page.
-window.location.href = ' . json_encode($dashboardurl) . ';
-</script>';
+</div>';
         } else {
             $connecturl = $wwwroot . '/local/softsysvideo/connect.php';
             $connhtml = '
 <div class="card border-secondary mb-3">
-  <div class="card-body d-flex align-items-center gap-3 p-3">
+  <div class="card-body d-flex align-items-center p-3 ssv-flex-gap">
     <div>
       <strong>' . get_string('not_connected', 'local_softsysvideo') . '</strong>
       <p class="mb-2 text-muted small">' . get_string('connect_instructions', 'local_softsysvideo') . '</p>

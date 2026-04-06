@@ -33,68 +33,28 @@ $PAGE->set_url(new moodle_url('/local/softsysvideo/recordings.php'));
 $PAGE->set_title(get_string('recordings', 'local_softsysvideo'));
 $PAGE->set_heading(get_string('pluginname', 'local_softsysvideo'));
 $PAGE->set_pagelayout('admin');
+$PAGE->navbar->add(get_string('pluginname', 'local_softsysvideo'),
+    new moodle_url('/local/softsysvideo/dashboard.php'));
+$PAGE->navbar->add(get_string('recordings', 'local_softsysvideo'));
 
 $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
-$apiurl = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: 'https://api.softsysvideo.com';
-$pluginkey = get_config('local_softsysvideo', 'softsysvideo_plugin_key') ?: '';
 
 if ($isconnected) {
     $filterstrs = [
-        'filters' => get_string('filters', 'local_softsysvideo'),
-        'show_filters' => get_string('show_filters', 'local_softsysvideo'),
-        'hide_filters' => get_string('hide_filters', 'local_softsysvideo'),
-        'state_all' => get_string('state_all', 'local_softsysvideo'),
-        'state_ready' => get_string('state_ready', 'local_softsysvideo'),
-        'state_processing' => get_string('state_processing', 'local_softsysvideo'),
-        'state_failed' => get_string('state_failed', 'local_softsysvideo'),
-        'date_from' => get_string('date_from', 'local_softsysvideo'),
-        'date_to' => get_string('date_to', 'local_softsysvideo'),
-        'sort_by' => get_string('sort_by', 'local_softsysvideo'),
-        'sort_order' => get_string('sort_order', 'local_softsysvideo'),
-        'ascending' => get_string('ascending', 'local_softsysvideo'),
-        'descending' => get_string('descending', 'local_softsysvideo'),
-        'sort_date' => get_string('sort_date', 'local_softsysvideo'),
-        'sort_duration' => get_string('sort_duration', 'local_softsysvideo'),
-        'sort_name' => get_string('sort_name', 'local_softsysvideo'),
-        'sort_size' => get_string('sort_size', 'local_softsysvideo'),
-        'apply_filters' => get_string('apply_filters', 'local_softsysvideo'),
+        'no_recordings' => get_string('no_recordings', 'local_softsysvideo'),
+        'total_recordings' => get_string('total_recordings', 'local_softsysvideo'),
+        'previous' => get_string('previous', 'local_softsysvideo'),
+        'next' => get_string('next', 'local_softsysvideo'),
+        'page_x_of_y' => get_string('page_x_of_y', 'local_softsysvideo', (object)['current' => '{current}', 'total' => '{total}']),
+        'play' => get_string('play', 'local_softsysvideo'),
     ];
-    $PAGE->requires->js_call_amd('local_softsysvideo/recordings', 'init', [$apiurl, $pluginkey, $filterstrs]);
+    $PAGE->requires->js_call_amd('local_softsysvideo/recordings', 'init', [$filterstrs]);
 }
-
-// Build plugin navigation.
-$navlinks = [];
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/dashboard.php'),
-    get_string('dashboard', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-primary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/recordings.php'),
-    get_string('recordings', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-secondary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/meetings.php'),
-    get_string('meetings', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-secondary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/connect.php'),
-    get_string('connection', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-secondary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/support.php'),
-    get_string('support', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-danger']
-);
-$navhtml = html_writer::div(implode('', $navlinks), 'd-flex gap-2 mb-3 flex-wrap');
 
 echo $OUTPUT->header();
 
 echo html_writer::start_div('container-fluid py-3');
-echo $navhtml;
+echo local_softsysvideo_render_navigation('recordings');
 echo html_writer::tag('h2', get_string('recordings', 'local_softsysvideo'));
 
 if (!$isconnected) {
@@ -130,7 +90,7 @@ if (!$isconnected) {
     );
     $pagination = html_writer::div(
         '',
-        'd-flex gap-2 align-items-end',
+        'd-flex align-items-end ssv-flex-gap',
         ['id' => 'ssv-recordings-pagination']
     );
     echo html_writer::div(
@@ -242,9 +202,11 @@ if (!$isconnected) {
     $th .= html_writer::tag('th', get_string('duration', 'local_softsysvideo'));
     $th .= html_writer::tag('th', get_string('size', 'local_softsysvideo'));
     $th .= html_writer::tag('th', get_string('play', 'local_softsysvideo'));
-    $thead = html_writer::tag('thead', html_writer::tag('tr', $th), ['class' => 'table-dark']);
+    $thead = html_writer::tag('thead', html_writer::tag('tr', $th));
     $tbody = html_writer::tag('tbody', '', ['id' => 'ssv-recordings-tbody']);
-    $table = html_writer::tag('table', $thead . $tbody, ['class' => 'table table-striped table-hover']);
+    $table = html_writer::tag('table', $thead . $tbody, [
+        'class' => 'generaltable table table-striped local-softsysvideo-table',
+    ]);
     $tablehtml = html_writer::div($table, 'table-responsive');
     $counthtml = html_writer::tag('p', '', ['class' => 'text-muted small', 'id' => 'ssv-recordings-count']);
     echo html_writer::div($tablehtml . $counthtml, 'd-none', ['id' => 'ssv-recordings-container']);
