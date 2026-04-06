@@ -169,7 +169,10 @@ if (!$isconnected) {
             'for' => 'ssv-filter-status', 'class' => $lbl,
         ]) .
         html_writer::select(
-            $statusopts, 'ssv-filter-status', '', false,
+            $statusopts,
+            'ssv-filter-status',
+            '',
+            false,
             ['id' => 'ssv-filter-status', 'class' => $ctl]
         ),
         'col'
@@ -179,7 +182,10 @@ if (!$isconnected) {
             'for' => 'ssv-filter-recording', 'class' => $lbl,
         ]) .
         html_writer::select(
-            $recopts, 'ssv-filter-recording', '', false,
+            $recopts,
+            'ssv-filter-recording',
+            '',
+            false,
             ['id' => 'ssv-filter-recording', 'class' => $ctl]
         ),
         'col'
@@ -207,7 +213,10 @@ if (!$isconnected) {
             'for' => 'ssv-filter-sort-by', 'class' => $lbl,
         ]) .
         html_writer::select(
-            $sortbyopts, 'ssv-filter-sort-by', 'started_at', false,
+            $sortbyopts,
+            'ssv-filter-sort-by',
+            'started_at',
+            false,
             ['id' => 'ssv-filter-sort-by', 'class' => $ctl]
         ),
         'col'
@@ -217,7 +226,10 @@ if (!$isconnected) {
             'for' => 'ssv-filter-sort-order', 'class' => $lbl,
         ]) .
         html_writer::select(
-            $sortorderopts, 'ssv-filter-sort-order', 'desc', false,
+            $sortorderopts,
+            'ssv-filter-sort-order',
+            'desc',
+            false,
             ['id' => 'ssv-filter-sort-order', 'class' => $ctl]
         ),
         'col-auto'

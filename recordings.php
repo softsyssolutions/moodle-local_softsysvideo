@@ -164,7 +164,10 @@ if (!$isconnected) {
             'for' => 'ssv-filter-state', 'class' => $lbl,
         ]) .
         html_writer::select(
-            $stateopts, 'ssv-filter-state', '', false,
+            $stateopts,
+            'ssv-filter-state',
+            '',
+            false,
             ['id' => 'ssv-filter-state', 'class' => $ctl]
         ),
         'col'
@@ -192,7 +195,10 @@ if (!$isconnected) {
             'for' => 'ssv-filter-sort-by', 'class' => $lbl,
         ]) .
         html_writer::select(
-            $sortbyopts, 'ssv-filter-sort-by', 'created_at', false,
+            $sortbyopts,
+            'ssv-filter-sort-by',
+            'created_at',
+            false,
             ['id' => 'ssv-filter-sort-by', 'class' => $ctl]
         ),
         'col'
@@ -202,7 +208,10 @@ if (!$isconnected) {
             'for' => 'ssv-filter-sort-order', 'class' => $lbl,
         ]) .
         html_writer::select(
-            $sortorderopts, 'ssv-filter-sort-order', 'desc', false,
+            $sortorderopts,
+            'ssv-filter-sort-order',
+            'desc',
+            false,
             ['id' => 'ssv-filter-sort-order', 'class' => $ctl]
         ),
         'col-auto'
