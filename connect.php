@@ -36,8 +36,10 @@ $PAGE->set_url(new moodle_url('/local/softsysvideo/connect.php'));
 $PAGE->set_title(get_string('connection', 'local_softsysvideo'));
 $PAGE->set_heading(get_string('pluginname', 'local_softsysvideo'));
 $PAGE->set_pagelayout('admin');
-$PAGE->navbar->add(get_string('pluginname', 'local_softsysvideo'),
-    new moodle_url('/local/softsysvideo/dashboard.php'));
+$PAGE->navbar->add(
+    get_string('pluginname', 'local_softsysvideo'),
+    new moodle_url('/local/softsysvideo/dashboard.php')
+);
 $PAGE->navbar->add(get_string('connection', 'local_softsysvideo'));
 
 $action = optional_param('action', '', PARAM_ALPHA);
@@ -55,14 +57,19 @@ if (data_submitted() && confirm_sesskey()) {
     if ($action === 'disconnect') {
         $connectionid = get_config('local_softsysvideo', 'softsysvideo_connection_id');
         $pluginkey = get_config('local_softsysvideo', 'softsysvideo_plugin_key');
-        if (!empty($connectionid) && !empty($pluginkey)) {
+        $storedapiurl = get_config('local_softsysvideo', 'softsysvideo_api_url');
+        if (!empty($connectionid) && !empty($pluginkey) && !empty($storedapiurl)) {
             $curl = new \curl();
+            $curl->setopt([
+                'CURLOPT_CONNECTTIMEOUT' => 10,
+                'CURLOPT_TIMEOUT' => 15,
+            ]);
             $curl->setHeader([
                 'Content-Type: application/json',
                 'Authorization: Bearer ' . $pluginkey,
             ]);
-            $curl->post('https://api.softsysvideo.com/api/moodle/disconnect',
-                json_encode(['connection_id' => $connectionid]));
+            $disconnecturl = rtrim($storedapiurl, '/') . '/api/moodle/disconnect';
+            $curl->post($disconnecturl, json_encode(['connection_id' => $connectionid]));
         }
 
         $configkeys = [
@@ -102,6 +109,10 @@ if (data_submitted() && confirm_sesskey()) {
             ]);
 
             $curl = new \curl();
+            $curl->setopt([
+                'CURLOPT_CONNECTTIMEOUT' => 10,
+                'CURLOPT_TIMEOUT' => 15,
+            ]);
             $curl->setHeader([
                 'Content-Type: application/json',
                 'Accept: application/json',

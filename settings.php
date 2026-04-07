@@ -36,7 +36,8 @@ if ($hassiteconfig) {
 
         if ($isconnected) {
             $dashboardurl = new \moodle_url('/local/softsysvideo/dashboard.php');
-            if (!CLI_SCRIPT && !AJAX_SCRIPT) {
+            $requestsection = optional_param('section', '', PARAM_ALPHANUMEXT);
+            if (!CLI_SCRIPT && !AJAX_SCRIPT && $requestsection === 'local_softsysvideo') {
                 redirect($dashboardurl);
             }
             $connhtml = '

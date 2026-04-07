@@ -122,9 +122,11 @@ class get_ticket_detail extends external_api {
             return '';
         }
         $proxybase = $CFG->wwwroot . '/local/softsysvideo/image_proxy.php?path=';
-        return preg_replace(
-            '#src=["\'](/api/moodle/support/image/[^"\']+)["\']#',
-            'src="' . $proxybase . '$1"',
+        return preg_replace_callback(
+            '#src=(["\'])(/api/(?:moodle/)?support/image/[^"\']+)\1#',
+            static function (array $matches) use ($proxybase): string {
+                return 'src=' . $matches[1] . $proxybase . rawurlencode($matches[2]) . $matches[1];
+            },
             $html
         );
     }

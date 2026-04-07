@@ -30,10 +30,9 @@ require_once('../../config.php');
 require_login();
 require_capability('local/softsysvideo:manage', context_system::instance());
 
-$path = required_param('path', PARAM_RAW);
+$path = required_param('path', PARAM_PATH);
 
-// Only allow whitelisted API image paths.
-if (strpos($path, '/api/moodle/support/image/') !== 0 && strpos($path, '/api/support/image/') !== 0) {
+if (!preg_match('#^/api/(moodle/)?support/image/[a-zA-Z0-9/_.-]+$#', $path)) {
     send_header_404();
     die();
 }
@@ -55,6 +54,7 @@ if (strpos($contenttype, 'image/') !== 0) {
 }
 
 header('Content-Type: ' . $contenttype);
-header('Cache-Control: public, max-age=86400');
+header('Cache-Control: private, max-age=86400');
+header('X-Content-Type-Options: nosniff');
 header('Content-Length: ' . strlen($result['content']));
 echo $result['content'];

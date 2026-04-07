@@ -33,8 +33,10 @@ $PAGE->set_url(new moodle_url('/local/softsysvideo/recordings.php'));
 $PAGE->set_title(get_string('recordings', 'local_softsysvideo'));
 $PAGE->set_heading(get_string('pluginname', 'local_softsysvideo'));
 $PAGE->set_pagelayout('admin');
-$PAGE->navbar->add(get_string('pluginname', 'local_softsysvideo'),
-    new moodle_url('/local/softsysvideo/dashboard.php'));
+$PAGE->navbar->add(
+    get_string('pluginname', 'local_softsysvideo'),
+    new moodle_url('/local/softsysvideo/dashboard.php')
+);
 $PAGE->navbar->add(get_string('recordings', 'local_softsysvideo'));
 
 $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));

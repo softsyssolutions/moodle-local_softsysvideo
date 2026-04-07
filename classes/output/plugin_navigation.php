@@ -42,7 +42,7 @@ class plugin_navigation implements renderable, templatable {
     /**
      * Constructor.
      *
-     * @param string $activepage One of: dashboard, recordings, meetings, connection, support.
+     * @param string $activepage One of: dashboard, recordings, meetings, connection, support, support_detail.
      */
     public function __construct(string $activepage) {
         $this->activepage = $activepage;

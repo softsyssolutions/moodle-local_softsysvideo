@@ -24,10 +24,14 @@
 define(['core/ajax'], function(Ajax) {
 
     var strs = {};
-    var currentPage = 1;
     var currentSearch = '';
     var debounceTimer = null;
 
+    /**
+     * Build the filter arguments from the DOM filter controls.
+     *
+     * @return {Object} Filter key-value pairs.
+     */
     function buildFilterArgs() {
         var args = {};
         var status = document.getElementById('ssv-filter-status');
@@ -49,6 +53,9 @@ define(['core/ajax'], function(Ajax) {
         return args;
     }
 
+    /**
+     * Bind click handler on the Apply Filters button.
+     */
     function initFilters() {
         var applyBtn = document.getElementById('ssv-filter-apply');
         if (applyBtn) {
@@ -58,6 +65,9 @@ define(['core/ajax'], function(Ajax) {
         }
     }
 
+    /**
+     * Show the loading spinner and hide the content container.
+     */
     function showSpinner() {
         var spinner = document.getElementById('ssv-meetings-spinner');
         if (spinner) { spinner.classList.remove('d-none'); }
@@ -65,11 +75,20 @@ define(['core/ajax'], function(Ajax) {
         if (container) { container.classList.add('d-none'); }
     }
 
+    /**
+     * Hide the loading spinner.
+     */
     function hideSpinner() {
         var spinner = document.getElementById('ssv-meetings-spinner');
         if (spinner) { spinner.classList.add('d-none'); }
     }
 
+    /**
+     * Render pagination controls.
+     *
+     * @param {number} page       Current page number.
+     * @param {number} totalPages Total number of pages.
+     */
     function renderPagination(page, totalPages) {
         var pag = document.getElementById('ssv-meetings-pagination');
         if (!pag) { return; }
@@ -106,8 +125,13 @@ define(['core/ajax'], function(Ajax) {
         pag.appendChild(nextBtn);
     }
 
+    /**
+     * Load a page of meetings from the server.
+     *
+     * @param {number} page   Page number to load.
+     * @param {string} search Search query string.
+     */
     function loadPage(page, search) {
-        currentPage = page;
         currentSearch = search;
         showSpinner();
 

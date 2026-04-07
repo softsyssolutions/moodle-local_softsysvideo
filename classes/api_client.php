@@ -83,6 +83,10 @@ class api_client {
         }
 
         $curl = new \curl();
+        $curl->setopt([
+            'CURLOPT_CONNECTTIMEOUT' => 10,
+            'CURLOPT_TIMEOUT' => 30,
+        ]);
         $curl->setHeader([
             'Authorization: Bearer ' . $this->pluginkey,
             'Accept: application/json',
@@ -112,6 +116,10 @@ class api_client {
         $payload = json_encode($body);
 
         $curl = new \curl();
+        $curl->setopt([
+            'CURLOPT_CONNECTTIMEOUT' => 10,
+            'CURLOPT_TIMEOUT' => 30,
+        ]);
         $curl->setHeader([
             'Authorization: Bearer ' . $this->pluginkey,
             'Content-Type: application/json',
@@ -140,6 +148,10 @@ class api_client {
         $url = $this->apiurl . $path;
 
         $curl = new \curl();
+        $curl->setopt([
+            'CURLOPT_CONNECTTIMEOUT' => 10,
+            'CURLOPT_TIMEOUT' => 60,
+        ]);
         $curl->setHeader([
             'Authorization: Bearer ' . $this->pluginkey,
         ]);

@@ -150,7 +150,7 @@ final class plugin_test extends \advanced_testcase {
      */
     public function test_services_defined(): void {
         $this->resetAfterTest();
-        $services = [
+        $expected = [
             'local_softsysvideo_get_stats',
             'local_softsysvideo_get_analytics',
             'local_softsysvideo_get_recordings',
@@ -159,10 +159,24 @@ final class plugin_test extends \advanced_testcase {
             'local_softsysvideo_get_ticket_detail',
             'local_softsysvideo_create_ticket',
         ];
-        $allfunctions = \core_component::get_component_classes_in_namespace(
-            'local_softsysvideo', 'external'
-        );
-        $this->assertNotEmpty($allfunctions, 'External functions should be defined.');
+
+        $servicespath = __DIR__ . '/../db/services.php';
+        $this->assertFileExists($servicespath);
+        $functions = [];
+        require($servicespath);
+        $this->assertNotEmpty($functions, 'External functions should be defined in db/services.php.');
+
+        foreach ($expected as $funcname) {
+            $this->assertArrayHasKey(
+                $funcname,
+                $functions,
+                "External function {$funcname} should be defined in db/services.php."
+            );
+            $this->assertTrue(
+                !empty($functions[$funcname]['ajax']),
+                "External function {$funcname} should be AJAX-enabled."
+            );
+        }
     }
 
     /**
@@ -176,7 +190,7 @@ final class plugin_test extends \advanced_testcase {
         $PAGE->set_context(\context_system::instance());
         $PAGE->set_url(new \moodle_url('/local/softsysvideo/dashboard.php'));
 
-        $html = local_softsysvideo_render_navigation('dashboard');
+        $html = \local_softsysvideo_render_navigation('dashboard');
         $this->assertStringContainsString('nav-tabs', $html);
         $this->assertStringContainsString('active', $html);
         $this->assertStringContainsString('dashboard.php', $html);

@@ -26,7 +26,6 @@ define(['core/ajax'], function(Ajax) {
 
     var wwwroot = '';
     var strings = {};
-    var currentOffset = 0;
     var limit = 20;
 
     /**
@@ -45,6 +44,9 @@ define(['core/ajax'], function(Ajax) {
         }
     }
 
+    /**
+     * Show the loading spinner and hide the content container.
+     */
     function showSpinner() {
         var spinner = document.getElementById('ssv-support-spinner');
         if (spinner) { spinner.classList.remove('d-none'); }
@@ -52,6 +54,9 @@ define(['core/ajax'], function(Ajax) {
         if (container) { container.classList.add('d-none'); }
     }
 
+    /**
+     * Hide the loading spinner.
+     */
     function hideSpinner() {
         var spinner = document.getElementById('ssv-support-spinner');
         if (spinner) { spinner.classList.add('d-none'); }
@@ -153,7 +158,6 @@ define(['core/ajax'], function(Ajax) {
      * @param {number} offset  Pagination offset.
      */
     function loadTickets(offset) {
-        currentOffset = offset;
         showSpinner();
 
         Ajax.call([{

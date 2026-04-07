@@ -37,10 +37,14 @@ $PAGE->set_url(new moodle_url('/local/softsysvideo/support_detail.php', ['id' =>
 $PAGE->set_title(get_string('ticket_detail', 'local_softsysvideo'));
 $PAGE->set_heading(get_string('pluginname', 'local_softsysvideo'));
 $PAGE->set_pagelayout('admin');
-$PAGE->navbar->add(get_string('pluginname', 'local_softsysvideo'),
-    new moodle_url('/local/softsysvideo/dashboard.php'));
-$PAGE->navbar->add(get_string('support', 'local_softsysvideo'),
-    new moodle_url('/local/softsysvideo/support.php'));
+$PAGE->navbar->add(
+    get_string('pluginname', 'local_softsysvideo'),
+    new moodle_url('/local/softsysvideo/dashboard.php')
+);
+$PAGE->navbar->add(
+    get_string('support', 'local_softsysvideo'),
+    new moodle_url('/local/softsysvideo/support.php')
+);
 $PAGE->navbar->add(get_string('ticket_detail', 'local_softsysvideo'));
 
 $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));

@@ -46,7 +46,7 @@ define(['core/ajax'], function(Ajax) {
                 if (data.tenant_name) {
                     var el = document.getElementById('ssv-tenant-name');
                     if (el) {
-                        el.textContent = data.tenant_name;
+                        el.innerHTML = 'Connected &mdash; ' + data.tenant_name;
                     }
                 }
                 return;

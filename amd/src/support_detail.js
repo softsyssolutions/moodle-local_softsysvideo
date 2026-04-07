@@ -24,6 +24,12 @@ define(['core/ajax'], function(Ajax) {
 
     var strings = {};
 
+    /**
+     * Map a ticket status to a Bootstrap badge CSS class.
+     *
+     * @param {string} status Ticket status value.
+     * @return {string} Badge CSS classes.
+     */
     function statusBadgeClass(status) {
         var s = (status || '').toLowerCase();
         if (s === 'new' || s === 'nuevo')                       { return 'badge bg-primary'; }
@@ -34,16 +40,27 @@ define(['core/ajax'], function(Ajax) {
         return 'badge bg-secondary';
     }
 
+    /**
+     * Show the loading spinner.
+     */
     function showSpinner() {
         var el = document.getElementById('ssv-detail-spinner');
         if (el) { el.classList.remove('d-none'); }
     }
 
+    /**
+     * Hide the loading spinner.
+     */
     function hideSpinner() {
         var el = document.getElementById('ssv-detail-spinner');
         if (el) { el.classList.add('d-none'); }
     }
 
+    /**
+     * Render the ticket header card with subject, status, priority, date and description.
+     *
+     * @param {Object} data Ticket data from the external service.
+     */
     function renderTicketCard(data) {
         var subjectEl  = document.getElementById('ssv-detail-subject');
         var statusEl   = document.getElementById('ssv-detail-status');
@@ -81,6 +98,11 @@ define(['core/ajax'], function(Ajax) {
         if (card) { card.classList.remove('d-none'); }
     }
 
+    /**
+     * Render the ticket message timeline.
+     *
+     * @param {Array} messages Array of message objects.
+     */
     function renderMessages(messages) {
         var timeline = document.getElementById('ssv-detail-timeline');
         if (!timeline) { return; }
