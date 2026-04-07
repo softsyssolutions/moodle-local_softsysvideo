@@ -36,6 +36,11 @@ $PAGE->set_url(new moodle_url('/local/softsysvideo/connect.php'));
 $PAGE->set_title(get_string('connection', 'local_softsysvideo'));
 $PAGE->set_heading(get_string('pluginname', 'local_softsysvideo'));
 $PAGE->set_pagelayout('admin');
+$PAGE->navbar->add(
+    get_string('pluginname', 'local_softsysvideo'),
+    new moodle_url('/local/softsysvideo/dashboard.php')
+);
+$PAGE->navbar->add(get_string('connection', 'local_softsysvideo'));
 
 $action = optional_param('action', '', PARAM_ALPHA);
 $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
@@ -45,29 +50,26 @@ $apiurl = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: '';
 $message = '';
 $messagetype = 'info';
 
+require_once($CFG->libdir . '/filelib.php');
+
 // Handle form submission.
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
+if (data_submitted() && confirm_sesskey()) {
     if ($action === 'disconnect') {
-        // Notify the API Worker so the connection record is removed from the Dashboard.
-        // Best-effort: if the call fails, we still disconnect locally.
         $connectionid = get_config('local_softsysvideo', 'softsysvideo_connection_id');
         $pluginkey = get_config('local_softsysvideo', 'softsysvideo_plugin_key');
-        if (!empty($connectionid) && !empty($pluginkey)) {
-            $disconnecturl = 'https://api.softsysvideo.com/api/moodle/disconnect';
-            $payload = json_encode(['connection_id' => $connectionid]);
-            $ch = curl_init($disconnecturl);
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => $payload,
-                CURLOPT_HTTPHEADER => [
-                    'Content-Type: application/json',
-                    'Authorization: Bearer ' . $pluginkey,
-                ],
-                CURLOPT_TIMEOUT => 10,
+        $storedapiurl = get_config('local_softsysvideo', 'softsysvideo_api_url');
+        if (!empty($connectionid) && !empty($pluginkey) && !empty($storedapiurl)) {
+            $curl = new \curl();
+            $curl->setopt([
+                'CURLOPT_CONNECTTIMEOUT' => 10,
+                'CURLOPT_TIMEOUT' => 15,
             ]);
-            curl_exec($ch);
-            curl_close($ch);
+            $curl->setHeader([
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $pluginkey,
+            ]);
+            $disconnecturl = rtrim($storedapiurl, '/') . '/api/moodle/disconnect';
+            $curl->post($disconnecturl, json_encode(['connection_id' => $connectionid]));
         }
 
         $configkeys = [
@@ -97,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
             $message = get_string('api_key_required', 'local_softsysvideo');
             $messagetype = 'warning';
         } else {
-            $moodleurl = (new moodle_url('/'))->get_scheme() . '://' . $_SERVER['HTTP_HOST'];
+            $moodleurl = $CFG->wwwroot;
             $connectendpoint = 'https://api.softsysvideo.com/api/moodle/connect';
 
             $payload = json_encode([
@@ -106,27 +108,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                 'label' => 'Moodle: ' . $moodleurl,
             ]);
 
-            $ch = curl_init($connectendpoint);
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => $payload,
-                CURLOPT_HTTPHEADER => [
-                    'Content-Type: application/json',
-                    'Accept: application/json',
-                    'Content-Length: ' . strlen($payload),
-                ],
-                CURLOPT_TIMEOUT => 15,
-                CURLOPT_FOLLOWLOCATION => true,
+            $curl = new \curl();
+            $curl->setopt([
+                'CURLOPT_CONNECTTIMEOUT' => 10,
+                'CURLOPT_TIMEOUT' => 15,
             ]);
-            $response = curl_exec($ch);
-            $httpcode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $curlerror = curl_error($ch);
-            curl_close($ch);
+            $curl->setHeader([
+                'Content-Type: application/json',
+                'Accept: application/json',
+            ]);
+            $response = $curl->post($connectendpoint, $payload);
+            $info = $curl->get_info();
+            $httpcode = (int)($info['http_code'] ?? 0);
+            $curlerror = $curl->error;
 
             if ($httpcode === 0 || !empty($curlerror)) {
                 $message = get_string('connection_server_error', 'local_softsysvideo')
-                    . ' ' . htmlspecialchars($curlerror ?: '');
+                    . ' ' . s($curlerror ?: '');
                 $messagetype = 'danger';
             } else {
                 $data = json_decode($response, true);
@@ -148,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
                         get_string(
                             'connection_success_detail',
                             'local_softsysvideo',
-                            htmlspecialchars($data['tenant_name'] ?? '')
+                            s($data['tenant_name'] ?? '')
                         ),
                         null,
                         \core\output\notification::NOTIFY_SUCCESS
@@ -159,50 +157,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && confirm_sesskey()) {
     }
 }
 
-// Build plugin navigation.
-$navlinks = [];
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/dashboard.php'),
-    get_string('dashboard', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-primary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/recordings.php'),
-    get_string('recordings', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-secondary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/meetings.php'),
-    get_string('meetings', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-secondary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/connect.php'),
-    get_string('connection', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-secondary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/support.php'),
-    get_string('support', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-danger']
-);
-$navhtml = html_writer::div(implode('', $navlinks), 'd-flex gap-2 mb-3 flex-wrap');
-
 echo $OUTPUT->header();
-echo html_writer::start_div('container-fluid py-3', ['style' => 'max-width:700px']);
-echo $navhtml;
+echo html_writer::start_div('container-fluid py-3');
+echo local_softsysvideo_render_navigation('connection');
 echo html_writer::tag('h2', get_string('connection', 'local_softsysvideo'));
+echo html_writer::start_div('', ['style' => 'max-width:700px']);
 
 if ($message) {
-    echo html_writer::div(htmlspecialchars($message), 'alert alert-' . $messagetype);
+    echo html_writer::div(s($message), 'alert alert-' . $messagetype);
 }
 
 if ($isconnected) {
     // Connected state card.
     $orglabel = get_string('organization_label', 'local_softsysvideo');
     $orgstrong = html_writer::tag('strong', $orglabel . ':');
-    $orgrow = html_writer::tag('p', $orgstrong . ' ' . htmlspecialchars($tenantname ?: '—'));
-    $apicodehtml = html_writer::tag('code', htmlspecialchars($apiurl));
+    $orgrow = html_writer::tag('p', $orgstrong . ' ' . s($tenantname ?: '—'));
+    $apicodehtml = html_writer::tag('code', s($apiurl));
     $apilabel = get_string('api_url_label', 'local_softsysvideo');
     $apistrong = html_writer::tag('strong', $apilabel . ':');
     $apirow = html_writer::tag('p', $apistrong . ' ' . $apicodehtml);
@@ -222,7 +192,7 @@ if ($isconnected) {
     $cardbody = html_writer::div($orgrow . $apirow . $disconnectform, 'card-body');
     $cardheader = html_writer::div(
         get_string('connected', 'local_softsysvideo'),
-        'card-header bg-success text-white fw-bold'
+        'card-header bg-success text-white font-weight-bold'
     );
     echo html_writer::div($cardheader . $cardbody, 'card border-success mb-4');
     echo html_writer::tag('h3', get_string('reconnect', 'local_softsysvideo'));
@@ -237,7 +207,7 @@ $keyinput .= html_writer::empty_tag('input', [
     'type' => 'text',
     'id' => 'ssv-api-key',
     'name' => 'api_key',
-    'class' => 'form-control font-monospace',
+    'class' => 'form-control ssv-monospace',
     'required' => 'required',
     'placeholder' => 'sss_live_...',
     'autocomplete' => 'off',
@@ -258,5 +228,6 @@ $forminner = $instrp .
 $form = html_writer::tag('form', $forminner, ['method' => 'post', 'action' => '']);
 echo html_writer::div(html_writer::div($form, 'card-body'), 'card');
 
-echo html_writer::end_div();
+echo html_writer::end_div(); // Close max-width wrapper.
+echo html_writer::end_div(); // Close container-fluid.
 echo $OUTPUT->footer();

@@ -37,52 +37,30 @@ $PAGE->set_url(new moodle_url('/local/softsysvideo/support_detail.php', ['id' =>
 $PAGE->set_title(get_string('ticket_detail', 'local_softsysvideo'));
 $PAGE->set_heading(get_string('pluginname', 'local_softsysvideo'));
 $PAGE->set_pagelayout('admin');
+$PAGE->navbar->add(
+    get_string('pluginname', 'local_softsysvideo'),
+    new moodle_url('/local/softsysvideo/dashboard.php')
+);
+$PAGE->navbar->add(
+    get_string('support', 'local_softsysvideo'),
+    new moodle_url('/local/softsysvideo/support.php')
+);
+$PAGE->navbar->add(get_string('ticket_detail', 'local_softsysvideo'));
 
 $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
-$apiurl = get_config('local_softsysvideo', 'softsysvideo_api_url') ?: 'https://api.softsysvideo.com';
-$pluginkey = get_config('local_softsysvideo', 'softsysvideo_plugin_key') ?: '';
 
 if ($isconnected) {
     $jsstrings = [
         'no_messages' => get_string('no_messages', 'local_softsysvideo'),
         'system_author' => 'System',
     ];
-    $PAGE->requires->js_call_amd('local_softsysvideo/support_detail', 'init', [$apiurl, $pluginkey, $ticketid, $jsstrings]);
+    $PAGE->requires->js_call_amd('local_softsysvideo/support_detail', 'init', [$ticketid, $jsstrings]);
 }
-
-// Build plugin navigation.
-$navlinks = [];
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/dashboard.php'),
-    get_string('dashboard', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-primary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/recordings.php'),
-    get_string('recordings', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-secondary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/meetings.php'),
-    get_string('meetings', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-secondary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/connect.php'),
-    get_string('connection', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-outline-secondary']
-);
-$navlinks[] = html_writer::link(
-    new moodle_url('/local/softsysvideo/support.php'),
-    get_string('support', 'local_softsysvideo'),
-    ['class' => 'btn btn-sm btn-danger']
-);
-$navhtml = html_writer::div(implode('', $navlinks), 'd-flex gap-2 mb-3 flex-wrap');
 
 echo $OUTPUT->header();
 
 echo html_writer::start_div('container-fluid py-3');
-echo $navhtml;
+echo local_softsysvideo_render_navigation('support_detail');
 
 // Back button.
 echo html_writer::link(

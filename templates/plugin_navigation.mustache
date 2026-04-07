@@ -1,0 +1,23 @@
+{{!
+    @template local_softsysvideo/plugin_navigation
+
+    Plugin navigation tabs.
+
+    Example context (json):
+    {
+        "tabs": [
+            {"id": "dashboard", "label": "Dashboard", "url": "/local/softsysvideo/dashboard.php", "active": true},
+            {"id": "recordings", "label": "Recordings", "url": "/local/softsysvideo/recordings.php", "active": false}
+        ]
+    }
+}}
+<ul class="nav nav-tabs ssv-plugin-nav mb-3">
+    {{#tabs}}
+    <li class="nav-item">
+        <a class="nav-link {{#active}}active{{/active}}" href="{{url}}"
+           {{#active}}aria-current="page"{{/active}}>
+            {{label}}
+        </a>
+    </li>
+    {{/tabs}}
+</ul>

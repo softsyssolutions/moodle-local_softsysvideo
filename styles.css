@@ -1,0 +1,204 @@
+/* stylelint-disable color-no-hex */
+/**
+ * SoftSys Video plugin styles.
+ *
+ * @package    local_softsysvideo
+ * @copyright  2026 SoftSys Solutions
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+/* Brand variables */
+:root {
+    --ssv-primary: #0d6efd;
+    --ssv-success: #198754;
+    --ssv-info: #0dcaf0;
+    --ssv-warning: #ffc107;
+    --ssv-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --ssv-border-radius: 0.5rem;
+}
+
+/* Plugin navigation tabs */
+.ssv-plugin-nav {
+    border-bottom: 2px solid #dee2e6;
+    margin-bottom: 1.5rem;
+}
+
+.ssv-plugin-nav .nav-link {
+    color: #495057;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    margin-bottom: -2px;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.ssv-plugin-nav .nav-link:hover {
+    color: var(--ssv-primary);
+    border-bottom-color: var(--ssv-primary);
+}
+
+.ssv-plugin-nav .nav-link.active {
+    color: var(--ssv-primary);
+    border-bottom-color: var(--ssv-primary);
+    background: transparent;
+}
+
+/* Stat cards on the dashboard */
+.ssv-stat-card {
+    border: none;
+    border-radius: var(--ssv-border-radius);
+    box-shadow: var(--ssv-card-shadow);
+    transition: box-shadow 0.2s;
+}
+
+.ssv-stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.ssv-stat-card .card-body {
+    padding: 1.25rem;
+}
+
+.ssv-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.ssv-stat-label {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+/* Tables - Moodle-compatible styling */
+.local-softsysvideo-table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: #495057;
+    padding: 0.75rem;
+    white-space: nowrap;
+}
+
+.local-softsysvideo-table tbody td {
+    padding: 0.75rem;
+    vertical-align: middle;
+}
+
+.local-softsysvideo-table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Connection status cards */
+.ssv-connected-card {
+    border-left: 4px solid var(--ssv-success);
+    border-radius: var(--ssv-border-radius);
+    box-shadow: var(--ssv-card-shadow);
+}
+
+.ssv-connect-card {
+    border-radius: var(--ssv-border-radius);
+    box-shadow: var(--ssv-card-shadow);
+}
+
+/* Filter row styling */
+.ssv-filter-row {
+    background-color: #f8f9fa;
+    border-radius: var(--ssv-border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.ssv-filter-row label {
+    font-weight: 500;
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+/* Charts area */
+.ssv-chart-card {
+    border: none;
+    border-radius: var(--ssv-border-radius);
+    box-shadow: var(--ssv-card-shadow);
+}
+
+.ssv-chart-card .card-body {
+    padding: 1.25rem;
+}
+
+/* Support ticket badges */
+.ssv-badge-new {
+    background-color: var(--ssv-primary);
+    color: #fff;
+}
+
+.ssv-badge-in-progress {
+    background-color: var(--ssv-warning);
+    color: #000;
+}
+
+.ssv-badge-answered {
+    background-color: var(--ssv-info);
+    color: #000;
+}
+
+.ssv-badge-resolved {
+    background-color: var(--ssv-success);
+    color: #fff;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+    .ssv-stat-value {
+        font-size: 1.5rem;
+    }
+
+    .ssv-plugin-nav .nav-link {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.875rem;
+    }
+
+    .ssv-filter-row {
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .ssv-plugin-nav {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .ssv-plugin-nav .nav-item {
+        flex-shrink: 0;
+    }
+}
+
+/* Monospace font fallback for Bootstrap 4 compatibility */
+.ssv-monospace {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Flex gap fallback for Bootstrap 4 compatibility */
+.ssv-flex-gap > * + * {
+    margin-left: 0.5rem;
+}
+
+/* Spinner area */
+.ssv-spinner-container {
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Pagination controls */
+.ssv-pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

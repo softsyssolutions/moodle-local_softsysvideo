@@ -21,36 +21,41 @@
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
+define(['core/ajax'], function(Ajax) {
 
-    var apiUrl = '';
-    var pluginKey = '';
     var strs = {};
-    var currentPage = 1;
     var currentSearch = '';
     var debounceTimer = null;
 
-    function buildFilterParams() {
-        var params = '';
+    /**
+     * Build the filter arguments from the DOM filter controls.
+     *
+     * @return {Object} Filter key-value pairs.
+     */
+    function buildFilterArgs() {
+        var args = {};
         var status = document.getElementById('ssv-filter-status');
-        if (status && status.value) { params += '&status=' + encodeURIComponent(status.value); }
+        if (status && status.value) { args.status = status.value; }
         var recording = document.getElementById('ssv-filter-recording');
-        if (recording && recording.value) { params += '&has_recording=' + encodeURIComponent(recording.value); }
+        if (recording && recording.value) { args.has_recording = recording.value; }
         var dateFrom = document.getElementById('ssv-filter-date-from');
         if (dateFrom && dateFrom.value) {
-            params += '&date_from=' + Math.floor(new Date(dateFrom.value + 'T00:00:00').getTime() / 1000);
+            args.date_from = Math.floor(new Date(dateFrom.value + 'T00:00:00').getTime() / 1000);
         }
         var dateTo = document.getElementById('ssv-filter-date-to');
         if (dateTo && dateTo.value) {
-            params += '&date_to=' + Math.floor(new Date(dateTo.value + 'T23:59:59').getTime() / 1000);
+            args.date_to = Math.floor(new Date(dateTo.value + 'T23:59:59').getTime() / 1000);
         }
         var sortBy = document.getElementById('ssv-filter-sort-by');
-        if (sortBy && sortBy.value) { params += '&sort_by=' + encodeURIComponent(sortBy.value); }
+        if (sortBy && sortBy.value) { args.sort_by = sortBy.value; }
         var sortOrder = document.getElementById('ssv-filter-sort-order');
-        if (sortOrder && sortOrder.value) { params += '&sort_order=' + encodeURIComponent(sortOrder.value); }
-        return params;
+        if (sortOrder && sortOrder.value) { args.sort_order = sortOrder.value; }
+        return args;
     }
 
+    /**
+     * Bind click handler on the Apply Filters button.
+     */
     function initFilters() {
         var applyBtn = document.getElementById('ssv-filter-apply');
         if (applyBtn) {
@@ -60,6 +65,9 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         }
     }
 
+    /**
+     * Show the loading spinner and hide the content container.
+     */
     function showSpinner() {
         var spinner = document.getElementById('ssv-meetings-spinner');
         if (spinner) { spinner.classList.remove('d-none'); }
@@ -67,47 +75,75 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         if (container) { container.classList.add('d-none'); }
     }
 
+    /**
+     * Hide the loading spinner.
+     */
     function hideSpinner() {
         var spinner = document.getElementById('ssv-meetings-spinner');
         if (spinner) { spinner.classList.add('d-none'); }
     }
 
+    /**
+     * Render pagination controls.
+     *
+     * @param {number} page       Current page number.
+     * @param {number} totalPages Total number of pages.
+     */
     function renderPagination(page, totalPages) {
         var pag = document.getElementById('ssv-meetings-pagination');
         if (!pag) { return; }
-        var prevDisabled = page <= 1 ? ' disabled' : '';
-        var nextDisabled = page >= totalPages ? ' disabled' : '';
-        pag.innerHTML =
-            '<button class="btn btn-sm btn-outline-secondary' + prevDisabled + '" id="ssv-meet-prev">\u2039 Anterior</button>' +
-            '<span class="mx-2 align-self-center">P\u00e1gina ' + page + ' de ' + totalPages + '</span>' +
-            '<button class="btn btn-sm btn-outline-secondary' + nextDisabled + '" id="ssv-meet-next">Siguiente \u203a</button>';
+        while (pag.firstChild) {
+            pag.removeChild(pag.firstChild);
+        }
 
-        var prevBtn = document.getElementById('ssv-meet-prev');
-        if (prevBtn && page > 1) {
+        var prevBtn = document.createElement('button');
+        prevBtn.className = 'btn btn-sm btn-outline-secondary';
+        if (page <= 1) { prevBtn.disabled = true; }
+        prevBtn.textContent = '\u2039 ' + (strs.previous || 'Previous');
+        if (page > 1) {
             prevBtn.addEventListener('click', function() {
                 loadPage(page - 1, currentSearch);
             });
         }
-        var nextBtn = document.getElementById('ssv-meet-next');
-        if (nextBtn && page < totalPages) {
+        pag.appendChild(prevBtn);
+
+        var pageInfo = document.createElement('span');
+        pageInfo.className = 'mx-2 align-self-center';
+        pageInfo.textContent = (strs.page_x_of_y || 'Page {current} of {total}')
+            .replace('{current}', page).replace('{total}', totalPages);
+        pag.appendChild(pageInfo);
+
+        var nextBtn = document.createElement('button');
+        nextBtn.className = 'btn btn-sm btn-outline-secondary';
+        if (page >= totalPages) { nextBtn.disabled = true; }
+        nextBtn.textContent = (strs.next || 'Next') + ' \u203a';
+        if (page < totalPages) {
             nextBtn.addEventListener('click', function() {
                 loadPage(page + 1, currentSearch);
             });
         }
+        pag.appendChild(nextBtn);
     }
 
+    /**
+     * Load a page of meetings from the server.
+     *
+     * @param {number} page   Page number to load.
+     * @param {string} search Search query string.
+     */
     function loadPage(page, search) {
-        currentPage = page;
         currentSearch = search;
         showSpinner();
 
-        var url = apiUrl + '/api/moodle/meetings?page=' + page + '&per_page=20';
-        if (search) { url += '&search=' + encodeURIComponent(search); }
-        url += buildFilterParams();
+        var args = buildFilterArgs();
+        args.page = page;
+        args.per_page = 20;
+        if (search) { args.search = search; }
 
-        fetch(url, {headers: {'Authorization': 'Bearer ' + pluginKey}})
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
+        Ajax.call([{
+            methodname: 'local_softsysvideo_get_meetings',
+            args: args
+        }])[0].then(function(data) {
             hideSpinner();
             var meetings = data.meetings || [];
             var total = data.total || 0;
@@ -117,26 +153,52 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             var count = document.getElementById('ssv-meetings-count');
             var container = document.getElementById('ssv-meetings-container');
 
-            if (count) { count.textContent = total + ' reuni\u00f3n(es) encontrada(s).'; }
+            if (count) { count.textContent = total + ' ' + (strs.total_meetings || 'meeting(s)'); }
             renderPagination(page, totalPages);
 
             if (!tbody) { return; }
 
+            while (tbody.firstChild) {
+                tbody.removeChild(tbody.firstChild);
+            }
             if (meetings.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No hay reuniones recientes</td></tr>';
+                var emptyRow = document.createElement('tr');
+                var emptyCell = document.createElement('td');
+                emptyCell.setAttribute('colspan', '4');
+                emptyCell.className = 'text-center text-muted';
+                emptyCell.textContent = strs.no_meetings || 'No meetings available.';
+                emptyRow.appendChild(emptyCell);
+                tbody.appendChild(emptyRow);
             } else {
-                tbody.innerHTML = meetings.map(function(m) {
-                    var date = m.started_at ? new Date(m.started_at * 1000).toLocaleString() : '\u2014';
-                    var dur = m.duration_seconds ? Math.round(m.duration_seconds / 60) + ' min' : '\u2014';
-                    var parts = m.participant_count !== undefined ? m.participant_count : '\u2014';
-                    return '<tr><td>' + (m.name || '\u2014') + '</td><td>' + date + '</td><td>' +
-                        dur + '</td><td>' + parts + '</td></tr>';
-                }).join('');
+                meetings.forEach(function(m) {
+                    var tr = document.createElement('tr');
+
+                    var tdName = document.createElement('td');
+                    tdName.textContent = m.name || '\u2014';
+                    tr.appendChild(tdName);
+
+                    var tdDate = document.createElement('td');
+                    tdDate.textContent = m.started_at
+                        ? new Date(m.started_at * 1000).toLocaleString() : '\u2014';
+                    tr.appendChild(tdDate);
+
+                    var tdDur = document.createElement('td');
+                    tdDur.textContent = m.duration_seconds
+                        ? Math.round(m.duration_seconds / 60) + ' min' : '\u2014';
+                    tr.appendChild(tdDur);
+
+                    var tdParts = document.createElement('td');
+                    tdParts.textContent = m.participant_count !== undefined
+                        ? m.participant_count : '\u2014';
+                    tr.appendChild(tdParts);
+
+                    tbody.appendChild(tr);
+                });
             }
 
             if (container) { container.classList.remove('d-none'); }
-        })
-        .catch(function() {
+            return;
+        }).catch(function() {
             hideSpinner();
             var err = document.getElementById('ssv-meetings-error');
             if (err) { err.classList.remove('d-none'); }
@@ -144,9 +206,7 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
     }
 
     return {
-        init: function(url, key, filterStrs) {
-            apiUrl = url;
-            pluginKey = key;
+        init: function(filterStrs) {
             strs = filterStrs || {};
 
             var searchInput = document.getElementById('ssv-meetings-search');

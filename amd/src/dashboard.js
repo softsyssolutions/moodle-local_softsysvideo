@@ -20,42 +20,37 @@
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
+define(['core/ajax'], function(Ajax) {
     return {
-        init: function(apiUrl, pluginKey) {
-            fetch(apiUrl + '/api/moodle/stats', {
-                headers: {'Authorization': 'Bearer ' + pluginKey}
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
+        init: function() {
+            Ajax.call([{
+                methodname: 'local_softsysvideo_get_stats',
+                args: {}
+            }])[0].then(function(data) {
                 var statMeetings = document.getElementById('ssv-stat-meetings');
                 var statHours = document.getElementById('ssv-stat-hours');
                 var statParticipants = document.getElementById('ssv-stat-participants');
                 var statRecordings = document.getElementById('ssv-stat-recordings');
                 if (statMeetings) {
-                    statMeetings.textContent = (data.this_month && data.this_month.meetings !== undefined)
-                        ? data.this_month.meetings : '\u2014';
+                    statMeetings.textContent = data.meetings !== undefined ? data.meetings : '\u2014';
                 }
                 if (statHours) {
-                    statHours.textContent = (data.this_month && data.this_month.total_hours !== undefined)
-                        ? data.this_month.total_hours : '\u2014';
+                    statHours.textContent = data.total_hours !== undefined ? data.total_hours : '\u2014';
                 }
                 if (statParticipants) {
-                    statParticipants.textContent = (data.this_month && data.this_month.participants !== undefined)
-                        ? data.this_month.participants : '\u2014';
+                    statParticipants.textContent = data.participants !== undefined ? data.participants : '\u2014';
                 }
                 if (statRecordings) {
-                    statRecordings.textContent = (data.this_month && data.this_month.recordings !== undefined)
-                        ? data.this_month.recordings : '\u2014';
+                    statRecordings.textContent = data.recordings !== undefined ? data.recordings : '\u2014';
                 }
                 if (data.tenant_name) {
                     var el = document.getElementById('ssv-tenant-name');
                     if (el) {
-                        el.textContent = data.tenant_name;
+                        el.innerHTML = 'Connected &mdash; ' + data.tenant_name;
                     }
                 }
-            })
-            .catch(function() {
+                return;
+            }).catch(function() {
                 var err = document.getElementById('ssv-stats-error');
                 if (err) {
                     err.classList.remove('d-none');

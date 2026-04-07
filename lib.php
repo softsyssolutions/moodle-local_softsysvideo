@@ -23,6 +23,19 @@
  */
 
 /**
+ * Render the plugin navigation tabs.
+ *
+ * @param string $activepage Current page identifier.
+ * @return string HTML output.
+ */
+function local_softsysvideo_render_navigation(string $activepage): string {
+    global $PAGE;
+    $renderer = $PAGE->get_renderer('local_softsysvideo');
+    $nav = new \local_softsysvideo\output\plugin_navigation($activepage);
+    return $renderer->render($nav);
+}
+
+/**
  * Extend the main navigation for SoftSys Video administrators.
  *
  * @param global_navigation $navigation

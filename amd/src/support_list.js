@@ -15,20 +15,17 @@
 
 /**
  * Support ticket list AMD module for local_softsysvideo.
- * Loads the ticket list from the external API, renders the table,
+ * Loads the ticket list via Moodle AJAX, renders the table,
  * handles pagination, and manages the create-ticket form.
  *
  * @module     local_softsysvideo/support_list
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
+define(['core/ajax'], function(Ajax) {
 
-    var apiUrl = '';
-    var pluginKey = '';
     var wwwroot = '';
     var strings = {};
-    var currentOffset = 0;
     var limit = 20;
 
     /**
@@ -47,6 +44,9 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         }
     }
 
+    /**
+     * Show the loading spinner and hide the content container.
+     */
     function showSpinner() {
         var spinner = document.getElementById('ssv-support-spinner');
         if (spinner) { spinner.classList.remove('d-none'); }
@@ -54,6 +54,9 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         if (container) { container.classList.add('d-none'); }
     }
 
+    /**
+     * Hide the loading spinner.
+     */
     function hideSpinner() {
         var spinner = document.getElementById('ssv-support-spinner');
         if (spinner) { spinner.classList.add('d-none'); }
@@ -69,20 +72,19 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         var pag = document.getElementById('ssv-support-pagination');
         if (!pag) { return; }
 
-        var prevDisabled = offset <= 0 ? ' disabled' : '';
-        var nextDisabled = (offset + limit) >= total ? ' disabled' : '';
-
-        pag.innerHTML = '';
+        while (pag.firstChild) {
+            pag.removeChild(pag.firstChild);
+        }
 
         var prevBtn = document.createElement('button');
-        prevBtn.className = 'btn btn-sm btn-outline-secondary' + prevDisabled;
-        prevBtn.id = 'ssv-sup-prev';
+        prevBtn.className = 'btn btn-sm btn-outline-secondary';
+        if (offset <= 0) { prevBtn.disabled = true; }
         prevBtn.textContent = '\u2039 ' + (strings.previous || 'Previous');
         pag.appendChild(prevBtn);
 
         var nextBtn = document.createElement('button');
-        nextBtn.className = 'btn btn-sm btn-outline-secondary' + nextDisabled;
-        nextBtn.id = 'ssv-sup-next';
+        nextBtn.className = 'btn btn-sm btn-outline-secondary';
+        if ((offset + limit) >= total) { nextBtn.disabled = true; }
         nextBtn.textContent = (strings.next || 'Next') + ' \u203a';
         pag.appendChild(nextBtn);
 
@@ -101,12 +103,14 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
     /**
      * Render the ticket rows into the table body.
      *
-     * @param {Array} tickets  Array of ticket objects from the API.
+     * @param {Array} tickets  Array of ticket objects.
      */
     function renderTable(tickets) {
         var tbody = document.getElementById('ssv-support-tbody');
         if (!tbody) { return; }
-        tbody.innerHTML = '';
+        while (tbody.firstChild) {
+            tbody.removeChild(tbody.firstChild);
+        }
 
         if (!tickets || tickets.length === 0) {
             var emptyRow = document.createElement('tr');
@@ -122,7 +126,6 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         tickets.forEach(function(ticket) {
             var tr = document.createElement('tr');
 
-            // Subject cell with link.
             var tdSubject = document.createElement('td');
             var link = document.createElement('a');
             link.href = wwwroot + '/local/softsysvideo/support_detail.php?id=' + encodeURIComponent(ticket.id);
@@ -130,7 +133,6 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             tdSubject.appendChild(link);
             tr.appendChild(tdSubject);
 
-            // Status cell with badge.
             var tdStatus = document.createElement('td');
             var badge = document.createElement('span');
             badge.className = statusBadgeClass(ticket.status);
@@ -138,12 +140,10 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
             tdStatus.appendChild(badge);
             tr.appendChild(tdStatus);
 
-            // Priority cell.
             var tdPriority = document.createElement('td');
             tdPriority.textContent = ticket.priority || '\u2014';
             tr.appendChild(tdPriority);
 
-            // Date cell.
             var tdDate = document.createElement('td');
             tdDate.textContent = ticket.created_at ? new Date(ticket.created_at).toLocaleString() : '\u2014';
             tr.appendChild(tdDate);
@@ -153,27 +153,21 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
     }
 
     /**
-     * Fetch tickets from the API and update the page.
+     * Fetch tickets via Moodle AJAX and update the page.
      *
      * @param {number} offset  Pagination offset.
      */
     function loadTickets(offset) {
-        currentOffset = offset;
         showSpinner();
 
-        var url = apiUrl + '/api/moodle/support/tickets?limit=' + limit + '&offset=' + offset;
-
-        fetch(url, {headers: {'Authorization': 'Bearer ' + pluginKey}})
-        .then(function(r) {
-            if (!r.ok) { throw new Error('HTTP ' + r.status); }
-            return r.json();
-        })
-        .then(function(data) {
+        Ajax.call([{
+            methodname: 'local_softsysvideo_get_tickets',
+            args: {limit: limit, offset: offset}
+        }])[0].then(function(data) {
             hideSpinner();
             var tickets = data.tickets || [];
             var total = data.total || 0;
 
-            // Clear any previous alerts.
             var errAlert = document.getElementById('ssv-support-error');
             if (errAlert) { errAlert.classList.add('d-none'); }
             var successAlert = document.getElementById('ssv-support-success');
@@ -187,8 +181,8 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
 
             var container = document.getElementById('ssv-support-container');
             if (container) { container.classList.remove('d-none'); }
-        })
-        .catch(function() {
+            return;
+        }).catch(function() {
             hideSpinner();
             var err = document.getElementById('ssv-support-error');
             if (err) { err.classList.remove('d-none'); }
@@ -225,7 +219,6 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
                 if (!subject || !subject.value.trim()) { return; }
                 if (!description || !description.value.trim()) { return; }
 
-                // Clear any previous alerts.
                 var errPrev = document.getElementById('ssv-support-error');
                 if (errPrev) { errPrev.classList.add('d-none'); }
                 var successPrev = document.getElementById('ssv-support-success');
@@ -234,34 +227,22 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
                 submitBtn.disabled = true;
                 submitBtn.textContent = strings.submitting || 'Loading...';
 
-                var body = {
+                var args = {
                     subject: subject.value.trim(),
-                    description: description.value.trim(),
-                    moodle_site_url: wwwroot
+                    description: description.value.trim()
                 };
                 if (courseId && courseId.value.trim()) {
-                    body.moodle_course_id = courseId.value.trim();
+                    args.course_id = courseId.value.trim();
                 }
 
-                fetch(apiUrl + '/api/moodle/support/tickets', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + pluginKey,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(body)
-                })
-                .then(function(r) {
-                    if (!r.ok) { throw new Error('HTTP ' + r.status); }
-                    return r.json();
-                })
-                .then(function() {
-                    // Reset form fields.
+                Ajax.call([{
+                    methodname: 'local_softsysvideo_create_ticket',
+                    args: args
+                }])[0].then(function() {
                     if (subject)     { subject.value = ''; }
                     if (description) { description.value = ''; }
                     if (courseId)    { courseId.value = ''; }
 
-                    // Show success, hide form.
                     var successDiv = document.getElementById('ssv-support-success');
                     if (successDiv) { successDiv.classList.remove('d-none'); }
                     if (formDiv)    { formDiv.classList.add('d-none'); }
@@ -269,10 +250,9 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
                     submitBtn.disabled = false;
                     submitBtn.textContent = strings.submit_ticket || 'Submit ticket';
 
-                    // Reload the list from the first page.
                     loadTickets(0);
-                })
-                .catch(function() {
+                    return;
+                }).catch(function() {
                     submitBtn.disabled = false;
                     submitBtn.textContent = strings.submit_ticket || 'Submit ticket';
                     var err = document.getElementById('ssv-support-error');
@@ -286,14 +266,10 @@ define(['core/ajax', 'core/notification'], function(Ajax, Notification) {
         /**
          * Initialise the support list page.
          *
-         * @param {string} url       Base API URL.
-         * @param {string} key       Plugin API key (Bearer token).
          * @param {string} siteroot  Moodle wwwroot for building detail links.
          * @param {Object} strs      Translated UI strings from PHP.
          */
-        init: function(url, key, siteroot, strs) {
-            apiUrl    = url;
-            pluginKey = key;
+        init: function(siteroot, strs) {
             wwwroot   = siteroot;
             strings   = strs || {};
 

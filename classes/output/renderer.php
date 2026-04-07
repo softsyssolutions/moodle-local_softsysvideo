@@ -1,3 +1,4 @@
+<?php
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -14,27 +15,31 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Connect AMD module for local_softsysvideo.
+ * Renderer for the SoftSys Video plugin.
  *
- * @module     local_softsysvideo/connect
+ * @package    local_softsysvideo
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define([], function() {
-    return {
-        init: function(connectEndpoint, wwwroot) {
-            var form = document.getElementById('ssv-connect-form');
-            if (!form) {
-                return;
-            }
-            form.addEventListener('submit', function() {
-                // Form submits normally via POST — no need to intercept.
-                // This module handles UI enhancements only.
-                var btn = document.getElementById('ssv-connect-btn');
-                if (btn) {
-                    btn.disabled = true;
-                }
-            });
-        }
-    };
-});
+
+namespace local_softsysvideo\output;
+
+use plugin_renderer_base;
+
+/**
+ * Plugin renderer.
+ */
+class renderer extends plugin_renderer_base {
+    /**
+     * Render the plugin navigation tabs.
+     *
+     * @param plugin_navigation $nav
+     * @return string HTML output.
+     */
+    protected function render_plugin_navigation(plugin_navigation $nav): string {
+        return $this->render_from_template(
+            'local_softsysvideo/plugin_navigation',
+            $nav->export_for_template($this)
+        );
+    }
+}
