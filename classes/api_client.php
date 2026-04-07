@@ -35,7 +35,6 @@ require_once($CFG->libdir . '/filelib.php');
  * Thin wrapper around the SoftSys Video REST API.
  */
 class api_client {
-
     /** @var string Base URL of the API (e.g. https://api.softsysvideo.com). */
     private string $apiurl;
 

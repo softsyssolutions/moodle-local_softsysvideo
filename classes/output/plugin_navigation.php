@@ -35,7 +35,6 @@ use moodle_url;
  * Navigation tabs for the plugin pages.
  */
 class plugin_navigation implements renderable, templatable {
-
     /** @var string Current page identifier. */
     private string $activepage;
 

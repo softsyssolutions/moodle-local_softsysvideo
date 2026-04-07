@@ -38,7 +38,6 @@ use external_value;
  * Proxy for /api/moodle/support/tickets/:id.
  */
 class get_ticket_detail extends external_api {
-
     /**
      * Describe parameters.
      * @return external_function_parameters

@@ -185,11 +185,12 @@ final class plugin_test extends \advanced_testcase {
      * @covers ::local_softsysvideo_render_navigation
      */
     public function test_render_navigation(): void {
-        global $PAGE;
+        global $PAGE, $CFG;
         $this->resetAfterTest();
         $PAGE->set_context(\context_system::instance());
         $PAGE->set_url(new \moodle_url('/local/softsysvideo/dashboard.php'));
 
+        require_once($CFG->dirroot . '/local/softsysvideo/lib.php');
         $html = \local_softsysvideo_render_navigation('dashboard');
         $this->assertStringContainsString('nav-tabs', $html);
         $this->assertStringContainsString('active', $html);

@@ -38,7 +38,6 @@ use external_value;
  * Proxy for /api/moodle/recordings.
  */
 class get_recordings extends external_api {
-
     /**
      * Describe parameters.
      * @return external_function_parameters
@@ -89,12 +88,24 @@ class get_recordings extends external_api {
         require_capability('local/softsysvideo:manage', $context);
 
         $query = ['page' => $params['page'], 'per_page' => $params['per_page']];
-        if (!empty($params['search']))     { $query['search'] = $params['search']; }
-        if (!empty($params['state']))      { $query['state'] = $params['state']; }
-        if (!empty($params['date_from']))  { $query['date_from'] = $params['date_from']; }
-        if (!empty($params['date_to']))    { $query['date_to'] = $params['date_to']; }
-        if (!empty($params['sort_by']))    { $query['sort_by'] = $params['sort_by']; }
-        if (!empty($params['sort_order'])) { $query['sort_order'] = $params['sort_order']; }
+        if (!empty($params['search'])) {
+            $query['search'] = $params['search'];
+        }
+        if (!empty($params['state'])) {
+            $query['state'] = $params['state'];
+        }
+        if (!empty($params['date_from'])) {
+            $query['date_from'] = $params['date_from'];
+        }
+        if (!empty($params['date_to'])) {
+            $query['date_to'] = $params['date_to'];
+        }
+        if (!empty($params['sort_by'])) {
+            $query['sort_by'] = $params['sort_by'];
+        }
+        if (!empty($params['sort_order'])) {
+            $query['sort_order'] = $params['sort_order'];
+        }
 
         $client = \local_softsysvideo\api_client::from_config();
         $data = $client->get('/api/moodle/recordings', $query);

@@ -38,7 +38,6 @@ use external_value;
  * Proxy for /api/moodle/analytics.
  */
 class get_analytics extends external_api {
-
     /**
      * Describe parameters.
      * @return external_function_parameters
