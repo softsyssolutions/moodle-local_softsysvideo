@@ -36,10 +36,6 @@ if ($hassiteconfig) {
 
         if ($isconnected) {
             $dashboardurl = new \moodle_url('/local/softsysvideo/dashboard.php');
-            $requestsection = optional_param('section', '', PARAM_ALPHANUMEXT);
-            if (!CLI_SCRIPT && !AJAX_SCRIPT && $requestsection === 'local_softsysvideo') {
-                redirect($dashboardurl);
-            }
             $connhtml = '
 <div class="card border-success mb-3">
   <div class="card-body p-3 text-center">
