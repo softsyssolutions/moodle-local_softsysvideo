@@ -28,24 +28,21 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
-    $settings = new admin_settingpage('local_softsysvideo', get_string('pluginname', 'local_softsysvideo'));
+    $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
 
-    if ($ADMIN->fulltree) {
-        $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
-        $wwwroot = $CFG->wwwroot;
+    if ($isconnected) {
+        // When connected, clicking the plugin name in admin goes directly to the dashboard.
+        $ADMIN->add('localplugins', new admin_externalpage(
+            'local_softsysvideo',
+            get_string('pluginname', 'local_softsysvideo'),
+            new moodle_url('/local/softsysvideo/dashboard.php')
+        ));
+    } else {
+        // When not connected, show the settings page with the connect prompt.
+        $settings = new admin_settingpage('local_softsysvideo', get_string('pluginname', 'local_softsysvideo'));
 
-        if ($isconnected) {
-            $dashboardurl = new \moodle_url('/local/softsysvideo/dashboard.php');
-            $connhtml = '
-<div class="card border-success mb-3">
-  <div class="card-body p-3 text-center">
-    <p class="mb-2">' . get_string('connected', 'local_softsysvideo') . '</p>
-    <a href="' . $dashboardurl->out() . '" class="btn btn-primary">' .
-            get_string('view_dashboard', 'local_softsysvideo') . '</a>
-  </div>
-</div>';
-        } else {
-            $connecturl = $wwwroot . '/local/softsysvideo/connect.php';
+        if ($ADMIN->fulltree) {
+            $connecturl = $CFG->wwwroot . '/local/softsysvideo/connect.php';
             $connhtml = '
 <div class="card border-secondary mb-3">
   <div class="card-body d-flex align-items-center p-3 ssv-flex-gap">
@@ -56,14 +53,14 @@ if ($hassiteconfig) {
     </div>
   </div>
 </div>';
+
+            $settings->add(new admin_setting_heading(
+                'local_softsysvideo/connectionstatus',
+                get_string('connection', 'local_softsysvideo'),
+                $connhtml
+            ));
         }
 
-        $settings->add(new admin_setting_heading(
-            'local_softsysvideo/connectionstatus',
-            get_string('connection', 'local_softsysvideo'),
-            $connhtml
-        ));
+        $ADMIN->add('localplugins', $settings);
     }
-
-    $ADMIN->add('localplugins', $settings);
 }

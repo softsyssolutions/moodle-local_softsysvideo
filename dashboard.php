@@ -40,28 +40,21 @@ $PAGE->navbar->add(
 $PAGE->navbar->add(get_string('dashboard', 'local_softsysvideo'));
 
 $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
+
+if (!$isconnected) {
+    redirect(new moodle_url('/local/softsysvideo/connect.php'));
+}
+
 $tenantname = get_config('local_softsysvideo', 'softsysvideo_tenant_name') ?: 'SoftSys Video';
 
-if ($isconnected) {
-    $PAGE->requires->js_call_amd('local_softsysvideo/dashboard', 'init');
-    $PAGE->requires->js_call_amd('local_softsysvideo/analytics', 'init');
-}
+$PAGE->requires->js_call_amd('local_softsysvideo/dashboard', 'init');
+$PAGE->requires->js_call_amd('local_softsysvideo/analytics', 'init');
 
 echo $OUTPUT->header();
 echo html_writer::start_div('container-fluid py-3');
 echo local_softsysvideo_render_navigation('dashboard');
 
-if (!$isconnected) {
-    echo $OUTPUT->notification(
-        get_string('not_connected', 'local_softsysvideo') . ' ' .
-        html_writer::link(
-            new moodle_url('/local/softsysvideo/connect.php'),
-            get_string('connect_account', 'local_softsysvideo')
-        ),
-        \core\output\notification::NOTIFY_WARNING
-    );
-} else {
-    // Header section.
+// Header section.
     $badgetext = get_string('connected', 'local_softsysvideo') . ' &mdash; ' . s($tenantname);
     $badge = html_writer::tag('span', $badgetext, ['class' => 'badge bg-success', 'id' => 'ssv-tenant-name']);
     $headercontent = html_writer::tag('h2', get_string('dashboard', 'local_softsysvideo'), ['class' => 'mb-0']);
@@ -129,7 +122,6 @@ if (!$isconnected) {
         'row g-3 mb-4',
         ['id' => 'ssv-charts-row']
     );
-}
 
 echo html_writer::end_div();
 echo $OUTPUT->footer();
