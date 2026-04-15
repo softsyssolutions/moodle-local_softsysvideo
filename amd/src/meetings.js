@@ -15,7 +15,7 @@
 
 /**
  * Meetings AMD module for local_softsysvideo.
- * Supports pagination, search with debounce, and spinner.
+ * Supports pagination, search with debounce, spinner, and participant detail modal.
  *
  * @module     local_softsysvideo/meetings
  * @copyright  2026 SoftSys Solutions {@link https://softsyssolutions.com}
@@ -126,6 +126,108 @@ define(['core/ajax'], function(Ajax) {
     }
 
     /**
+     * Format a Unix timestamp as a human-readable date/time string.
+     *
+     * @param {number} ts Unix timestamp.
+     * @return {string}
+     */
+    function formatTs(ts) {
+        if (!ts) { return '\u2014'; }
+        return new Date(ts * 1000).toLocaleString();
+    }
+
+    /**
+     * Open the participants modal for a meeting.
+     *
+     * @param {string} meetingId The BigBlueButton meeting ID.
+     * @param {string} meetingName The meeting name for the modal title.
+     */
+    function openParticipantsModal(meetingId, meetingName) {
+        var modalEl = document.getElementById('ssv-participants-modal');
+        if (!modalEl) { return; }
+
+        // Reset modal state.
+        var spinner = document.getElementById('ssv-participants-spinner');
+        var errEl = document.getElementById('ssv-participants-error');
+        var tableEl = document.getElementById('ssv-participants-table');
+        var emptyEl = document.getElementById('ssv-participants-empty');
+        var tbody = document.getElementById('ssv-participants-tbody');
+        var titleEl = modalEl.querySelector('.modal-title');
+
+        if (titleEl) { titleEl.textContent = meetingName || (strs.participant_details || 'Participants'); }
+        if (spinner) { spinner.classList.remove('d-none'); }
+        if (errEl) { errEl.classList.add('d-none'); }
+        if (tableEl) { tableEl.classList.add('d-none'); }
+        if (emptyEl) { emptyEl.classList.add('d-none'); }
+        if (tbody) {
+            while (tbody.firstChild) { tbody.removeChild(tbody.firstChild); }
+        }
+
+        // Show modal.
+        if (window.bootstrap && window.bootstrap.Modal) {
+            var bsModal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
+            bsModal.show();
+        }
+
+        Ajax.call([{
+            methodname: 'local_softsysvideo_get_meeting_participants',
+            args: {meeting_id: meetingId}
+        }])[0].then(function(data) {
+            if (spinner) { spinner.classList.add('d-none'); }
+            var participants = data.participants || [];
+
+            if (participants.length === 0) {
+                if (emptyEl) { emptyEl.classList.remove('d-none'); }
+                return;
+            }
+
+            if (tableEl) { tableEl.classList.remove('d-none'); }
+            participants.forEach(function(p) {
+                var tr = document.createElement('tr');
+
+                var tdName = document.createElement('td');
+                tdName.textContent = p.full_name || '\u2014';
+                tr.appendChild(tdName);
+
+                var tdRole = document.createElement('td');
+                var roleBadge = document.createElement('span');
+                roleBadge.className = p.role === 'moderator'
+                    ? 'badge bg-primary'
+                    : 'badge bg-secondary';
+                roleBadge.textContent = p.role || '\u2014';
+                tdRole.appendChild(roleBadge);
+                tr.appendChild(tdRole);
+
+                var tdJoined = document.createElement('td');
+                tdJoined.textContent = formatTs(p.joined_at);
+                tr.appendChild(tdJoined);
+
+                var tdDur = document.createElement('td');
+                tdDur.textContent = p.duration_seconds
+                    ? Math.round(p.duration_seconds / 60) + ' min'
+                    : '\u2014';
+                tr.appendChild(tdDur);
+
+                var tdVideo = document.createElement('td');
+                tdVideo.innerHTML = p.video_enabled ? '&#10003;' : '\u2014';
+                tdVideo.className = p.video_enabled ? 'text-success' : 'text-muted';
+                tr.appendChild(tdVideo);
+
+                var tdAudio = document.createElement('td');
+                tdAudio.innerHTML = p.audio_enabled ? '&#10003;' : '\u2014';
+                tdAudio.className = p.audio_enabled ? 'text-success' : 'text-muted';
+                tr.appendChild(tdAudio);
+
+                if (tbody) { tbody.appendChild(tr); }
+            });
+            return;
+        }).catch(function() {
+            if (spinner) { spinner.classList.add('d-none'); }
+            if (errEl) { errEl.classList.remove('d-none'); }
+        });
+    }
+
+    /**
      * Load a page of meetings from the server.
      *
      * @param {number} page   Page number to load.
@@ -164,7 +266,7 @@ define(['core/ajax'], function(Ajax) {
             if (meetings.length === 0) {
                 var emptyRow = document.createElement('tr');
                 var emptyCell = document.createElement('td');
-                emptyCell.setAttribute('colspan', '4');
+                emptyCell.setAttribute('colspan', '5');
                 emptyCell.className = 'text-center text-muted';
                 emptyCell.textContent = strs.no_meetings || 'No meetings available.';
                 emptyRow.appendChild(emptyCell);
@@ -191,6 +293,18 @@ define(['core/ajax'], function(Ajax) {
                     tdParts.textContent = m.participant_count !== undefined
                         ? m.participant_count : '\u2014';
                     tr.appendChild(tdParts);
+
+                    var tdDetail = document.createElement('td');
+                    if (m.meeting_id) {
+                        var detailBtn = document.createElement('button');
+                        detailBtn.className = 'btn btn-sm btn-outline-primary';
+                        detailBtn.textContent = strs.view_details || 'Details';
+                        detailBtn.addEventListener('click', function() {
+                            openParticipantsModal(m.meeting_id, m.name);
+                        });
+                        tdDetail.appendChild(detailBtn);
+                    }
+                    tr.appendChild(tdDetail);
 
                     tbody.appendChild(tr);
                 });

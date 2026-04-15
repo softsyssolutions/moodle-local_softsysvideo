@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0] — 2026-04-15
+
+### Added
+
+- Analytics range selector on dashboard: 7d / 30d / 90d buttons reload charts on the fly
+- Analytics KPI summary cards (Total Sessions, Total Minutes, Total Recording Minutes, Recordings)
+- Meeting participant detail modal: click "Details" on any meeting row to see participants
+- New API endpoint `GET /api/moodle/meetings/:meetingId/participants` in api-worker
+- New external function `local_softsysvideo_get_meeting_participants`
+- Participant columns: full name, role badge, joined timestamp, duration, video, audio
+- New lang strings: `range_7d`, `range_30d`, `range_90d`, `total_sessions`, `total_minutes`, `participant_details`, `no_participants`, `full_name`, `role`, `joined`, `video`, `audio`, `view_details`
+- `get_analytics` external function now returns `summary` object alongside `chart_data`
+
+### Changed
+
+- Charts are destroyed and recreated on range change (no duplicate charts)
+- Meetings table now has 5 columns (was 4); 5th column shows "Details" button
+
+## [2.0.0] — 2026-04-15
+
+### Added
+
+- Credit Balance stat card on dashboard (shows tenant credit balance in USD)
+- Low-balance warning: card turns yellow + "Low balance — top up soon" badge when balance < $0.50
+- Session Minutes stat card (minutes of video sessions consumed this calendar month)
+- New fields in `/api/moodle/stats` response: `credit_balance`, `low_balance_warning`, `session_minutes`, `recording_minutes`
+- 4 new lang strings: `creditbalance`, `lowbalancewarning`, `sessionminutes`, `recordingminutes`
+- Spec SDD at `specs/003-moodle-plugin-v2/spec.md` (in api-worker repo)
+
+### Changed
+
+- Dashboard layout: 6 stat cards in 2-column grid (was 4 cards in 4-column grid)
+- `get_stats` external function now returns 9 fields (was 5)
+- Stat card hover now includes subtle upward translation in addition to shadow deepening
+- Stat label style: uppercase, slightly larger letter-spacing for improved readability
+
 ## [0.2.0] — 2026-03-22
 
 ### Added

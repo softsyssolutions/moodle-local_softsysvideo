@@ -21,34 +21,44 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 define(['core/ajax'], function(Ajax) {
+
+    /**
+     * Set text content of an element by id, if present.
+     * @param {string} id
+     * @param {string|number} value
+     */
+    function setText(id, value) {
+        var el = document.getElementById(id);
+        if (el) {
+            el.textContent = (value !== undefined && value !== null) ? String(value) : '\u2014';
+        }
+    }
+
     return {
         init: function() {
             Ajax.call([{
                 methodname: 'local_softsysvideo_get_stats',
                 args: {}
             }])[0].then(function(data) {
-                var statMeetings = document.getElementById('ssv-stat-meetings');
-                var statHours = document.getElementById('ssv-stat-hours');
-                var statParticipants = document.getElementById('ssv-stat-participants');
-                var statRecordings = document.getElementById('ssv-stat-recordings');
-                if (statMeetings) {
-                    statMeetings.textContent = data.meetings !== undefined ? data.meetings : '\u2014';
-                }
-                if (statHours) {
-                    statHours.textContent = data.total_hours !== undefined ? data.total_hours : '\u2014';
-                }
-                if (statParticipants) {
-                    statParticipants.textContent = data.participants !== undefined ? data.participants : '\u2014';
-                }
-                if (statRecordings) {
-                    statRecordings.textContent = data.recordings !== undefined ? data.recordings : '\u2014';
-                }
+
+                // Core monthly KPIs.
+                setText('ssv-stat-meetings', data.meetings);
+                setText('ssv-stat-hours', data.total_hours);
+                setText('ssv-stat-participants', data.participants);
+                setText('ssv-stat-recordings', data.recordings);
+
+                // Consumption data (v2).
+                setText('ssv-stat-session-minutes', data.session_minutes !== undefined ? data.session_minutes + ' min' : '\u2014');
+                setText('ssv-stat-recording-minutes', data.recording_minutes !== undefined ? data.recording_minutes + ' min' : '\u2014');
+
+                // Tenant name badge.
                 if (data.tenant_name) {
-                    var el = document.getElementById('ssv-tenant-name');
-                    if (el) {
-                        el.innerHTML = 'Connected &mdash; ' + data.tenant_name;
+                    var tenantEl = document.getElementById('ssv-tenant-name');
+                    if (tenantEl) {
+                        tenantEl.innerHTML = 'Connected &mdash; ' + data.tenant_name;
                     }
                 }
+
                 return;
             }).catch(function() {
                 var err = document.getElementById('ssv-stats-error');

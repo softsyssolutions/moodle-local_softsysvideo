@@ -218,6 +218,7 @@ if (!$isconnected) {
     $th .= html_writer::tag('th', get_string('start_date', 'local_softsysvideo'));
     $th .= html_writer::tag('th', get_string('duration', 'local_softsysvideo'));
     $th .= html_writer::tag('th', get_string('participants', 'local_softsysvideo'));
+    $th .= html_writer::tag('th', '');
     $thead = html_writer::tag('thead', html_writer::tag('tr', $th));
     $tbody = html_writer::tag('tbody', '', ['id' => 'ssv-meetings-tbody']);
     $table = html_writer::tag('table', $thead . $tbody, [
@@ -226,6 +227,59 @@ if (!$isconnected) {
     $tablehtml = html_writer::div($table, 'table-responsive');
     $counthtml = html_writer::tag('p', '', ['class' => 'text-muted small', 'id' => 'ssv-meetings-count']);
     echo html_writer::div($tablehtml . $counthtml, 'd-none', ['id' => 'ssv-meetings-container']);
+    // Participants modal.
+    $modalspinner = html_writer::div(
+        $OUTPUT->pix_icon('i/loading', '', 'moodle', ['class' => 'icon-lg']),
+        'text-center py-3',
+        ['id' => 'ssv-participants-spinner']
+    );
+    $modalerror = html_writer::div(
+        get_string('request_failed', 'local_softsysvideo'),
+        'alert alert-danger d-none',
+        ['id' => 'ssv-participants-error']
+    );
+    $modalth = html_writer::tag('th', get_string('full_name', 'local_softsysvideo'));
+    $modalth .= html_writer::tag('th', get_string('role', 'local_softsysvideo'));
+    $modalth .= html_writer::tag('th', get_string('joined', 'local_softsysvideo'));
+    $modalth .= html_writer::tag('th', get_string('duration', 'local_softsysvideo'));
+    $modalth .= html_writer::tag('th', get_string('video', 'local_softsysvideo'));
+    $modalth .= html_writer::tag('th', get_string('audio', 'local_softsysvideo'));
+    $modalthead = html_writer::tag('thead', html_writer::tag('tr', $modalth));
+    $modaltbody = html_writer::tag('tbody', '', ['id' => 'ssv-participants-tbody']);
+    $modaltable = html_writer::tag('table', $modalthead . $modaltbody, [
+        'class' => 'table table-sm table-striped local-softsysvideo-table d-none',
+        'id'    => 'ssv-participants-table',
+    ]);
+    $noresults = html_writer::div(
+        get_string('no_participants', 'local_softsysvideo'),
+        'text-muted text-center py-3 d-none',
+        ['id' => 'ssv-participants-empty']
+    );
+    $modalbody = html_writer::div(
+        $modalspinner . $modalerror . $modaltable . $noresults,
+        'modal-body'
+    );
+    $modalheader = html_writer::div(
+        html_writer::tag('h5', get_string('participant_details', 'local_softsysvideo'), [
+            'class' => 'modal-title', 'id' => 'ssv-participants-modal-label',
+        ]) .
+        html_writer::tag('button', '', [
+            'type' => 'button', 'class' => 'btn-close',
+            'data-bs-dismiss' => 'modal', 'aria-label' => 'Close',
+        ]),
+        'modal-header'
+    );
+    $modalcontent = html_writer::div(
+        $modalheader . $modalbody,
+        'modal-content'
+    );
+    $modaldialog = html_writer::div($modalcontent, 'modal-dialog modal-lg modal-dialog-scrollable');
+    echo html_writer::div($modaldialog, 'modal fade', [
+        'id'              => 'ssv-participants-modal',
+        'tabindex'        => '-1',
+        'aria-labelledby' => 'ssv-participants-modal-label',
+        'aria-hidden'     => 'true',
+    ]);
 }
 
 echo html_writer::end_div();

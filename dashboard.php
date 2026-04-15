@@ -72,19 +72,22 @@ if (!$isconnected) {
     );
 
     // Stats cards.
-    $statcard = function ($id, $colorclass, $labelkey) {
+    $statcard = function ($id, $colorclass, $labelkey, $extraclass = '') {
         $inner = html_writer::div('&mdash;', 'ssv-stat-value ' . $colorclass, ['id' => $id]);
         $inner .= html_writer::div(get_string($labelkey, 'local_softsysvideo'), 'ssv-stat-label');
         return html_writer::div(
             html_writer::div($inner, 'card-body'),
-            'card ssv-stat-card text-center h-100'
+            'card ssv-stat-card text-center h-100' . ($extraclass ? ' ' . $extraclass : '')
         );
     };
+
     $statsrow = html_writer::div(
-        html_writer::div($statcard('ssv-stat-meetings', 'text-primary', 'this_month_meetings'), 'col-6 col-md-3') .
-        html_writer::div($statcard('ssv-stat-hours', 'text-info', 'video_hours'), 'col-6 col-md-3') .
-        html_writer::div($statcard('ssv-stat-participants', 'text-warning', 'total_participants'), 'col-6 col-md-3') .
-        html_writer::div($statcard('ssv-stat-recordings', 'text-success', 'total_recordings'), 'col-6 col-md-3'),
+        html_writer::div($statcard('ssv-stat-meetings', 'text-primary', 'this_month_meetings'), 'col-6 col-md-4') .
+        html_writer::div($statcard('ssv-stat-hours', 'text-info', 'video_hours'), 'col-6 col-md-4') .
+        html_writer::div($statcard('ssv-stat-session-minutes', 'text-primary', 'sessionminutes'), 'col-6 col-md-4') .
+        html_writer::div($statcard('ssv-stat-participants', 'text-warning', 'total_participants'), 'col-6 col-md-4') .
+        html_writer::div($statcard('ssv-stat-recordings', 'text-success', 'total_recordings'), 'col-6 col-md-4') .
+        html_writer::div($statcard('ssv-stat-recording-minutes', 'text-success', 'recordingminutes'), 'col-6 col-md-4'),
         'row g-3 mb-4'
     );
     echo $statsrow;
@@ -95,8 +98,45 @@ if (!$isconnected) {
         ['id' => 'ssv-stats-error']
     );
 
-    // Analytics charts.
-    echo html_writer::tag('h4', get_string('usage_over_time', 'local_softsysvideo'), ['class' => 'mt-4 mb-3']);
+    // Analytics section.
+    $analyticsheader = html_writer::tag('h4', get_string('usage_over_time', 'local_softsysvideo'), ['class' => 'mb-0']);
+    $rangebtn = function ($range, $label, $active = false) {
+        $cls = 'btn btn-sm ssv-range-btn ' . ($active ? 'btn-primary' : 'btn-outline-secondary');
+        return html_writer::tag('button', $label, [
+            'class'      => $cls,
+            'type'       => 'button',
+            'data-range' => $range,
+        ]);
+    };
+    $rangebtns = html_writer::div(
+        $rangebtn('7d', get_string('range_7d', 'local_softsysvideo')) .
+        $rangebtn('30d', get_string('range_30d', 'local_softsysvideo'), true) .
+        $rangebtn('90d', get_string('range_90d', 'local_softsysvideo')),
+        'btn-group ssv-flex-gap'
+    );
+    echo html_writer::div(
+        html_writer::div($analyticsheader, '') .
+        html_writer::div($rangebtns, ''),
+        'd-flex justify-content-between align-items-center mt-4 mb-3'
+    );
+
+    // Analytics KPI cards.
+    $akpi = function ($id, $colorclass, $labelkey) use ($statcard) {
+        $inner = html_writer::div('&mdash;', 'ssv-stat-value ' . $colorclass, ['id' => $id]);
+        $inner .= html_writer::div(get_string($labelkey, 'local_softsysvideo'), 'ssv-stat-label');
+        return html_writer::div(
+            html_writer::div($inner, 'card-body'),
+            'card ssv-stat-card text-center h-100'
+        );
+    };
+    echo html_writer::div(
+        html_writer::div($akpi('ssv-analytics-total-sessions', 'text-primary', 'total_sessions'), 'col-6 col-md-3') .
+        html_writer::div($akpi('ssv-analytics-total-minutes', 'text-info', 'total_minutes'), 'col-6 col-md-3') .
+        html_writer::div($akpi('ssv-analytics-total-rec-minutes', 'text-success', 'recordingminutes'), 'col-6 col-md-3') .
+        html_writer::div($akpi('ssv-analytics-recordings-count', 'text-warning', 'total_recordings'), 'col-6 col-md-3'),
+        'row g-3 mb-3'
+    );
+
     echo html_writer::div(
         $OUTPUT->pix_icon('i/loading', '', 'moodle', ['class' => 'icon-lg']),
         'text-center py-3',
