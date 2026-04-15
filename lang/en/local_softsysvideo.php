@@ -26,8 +26,8 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['active_meetings'] = 'Active';
 $string['all_statuses'] = 'All statuses';
-$string['audio'] = 'Audio';
 $string['analytics_unavailable'] = 'Analytics data unavailable.';
+$string['audio'] = 'Audio';
 $string['api_key_help'] = 'Generate a key at app.softsysvideo.com > Settings > API Keys.';
 $string['api_key_label'] = 'API Key';
 $string['api_key_required'] = 'Please enter a valid API key.';
