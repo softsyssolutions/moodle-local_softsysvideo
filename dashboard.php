@@ -100,7 +100,7 @@ if (!$isconnected) {
 
     // Analytics section.
     $analyticsheader = html_writer::tag('h4', get_string('usage_over_time', 'local_softsysvideo'), ['class' => 'mb-0']);
-    $rangebtn = function($range, $label, $active = false) {
+    $rangebtn = function ($range, $label, $active = false) {
         $cls = 'btn btn-sm ssv-range-btn ' . ($active ? 'btn-primary' : 'btn-outline-secondary');
         return html_writer::tag('button', $label, [
             'class'      => $cls,
@@ -121,7 +121,7 @@ if (!$isconnected) {
     );
 
     // Analytics KPI cards.
-    $akpi = function($id, $colorclass, $labelkey) use ($statcard) {
+    $akpi = function ($id, $colorclass, $labelkey) use ($statcard) {
         $inner = html_writer::div('&mdash;', 'ssv-stat-value ' . $colorclass, ['id' => $id]);
         $inner .= html_writer::div(get_string($labelkey, 'local_softsysvideo'), 'ssv-stat-label');
         return html_writer::div(

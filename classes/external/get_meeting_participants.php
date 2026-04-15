@@ -50,11 +50,11 @@ class get_meeting_participants extends external_api {
 
     /**
      * Execute the external function.
-     * @param string $meeting_id The meeting ID.
+     * @param string $meetingid The meeting ID.
      * @return array
      */
-    public static function execute(string $meeting_id): array {
-        $params = self::validate_parameters(self::execute_parameters(), ['meeting_id' => $meeting_id]);
+    public static function execute(string $meetingid): array {
+        $params = self::validate_parameters(self::execute_parameters(), ['meeting_id' => $meetingid]);
         $context = \context_system::instance();
         self::validate_context($context);
         require_capability('local/softsysvideo:manage', $context);
