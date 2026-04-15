@@ -41,6 +41,10 @@ $PAGE->navbar->add(get_string('meetings', 'local_softsysvideo'));
 
 $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
 
+if (!$isconnected) {
+    redirect(new moodle_url('/local/softsysvideo/connect.php'));
+}
+
 if ($isconnected) {
     $filterstrs = [
         'no_meetings' => get_string('no_meetings', 'local_softsysvideo'),

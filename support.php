@@ -43,6 +43,10 @@ $PAGE->navbar->add(get_string('support', 'local_softsysvideo'));
 
 $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
 
+if (!$isconnected) {
+    redirect(new moodle_url('/local/softsysvideo/connect.php'));
+}
+
 if ($isconnected) {
     $jsstrings = [
         'no_tickets' => get_string('no_tickets', 'local_softsysvideo'),

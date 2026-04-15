@@ -41,6 +41,10 @@ $PAGE->navbar->add(get_string('recordings', 'local_softsysvideo'));
 
 $isconnected = !empty(get_config('local_softsysvideo', 'softsysvideo_plugin_key'));
 
+if (!$isconnected) {
+    redirect(new moodle_url('/local/softsysvideo/connect.php'));
+}
+
 if ($isconnected) {
     $filterstrs = [
         'no_recordings' => get_string('no_recordings', 'local_softsysvideo'),
