@@ -72,19 +72,22 @@ if (!$isconnected) {
     );
 
     // Stats cards.
-    $statcard = function ($id, $colorclass, $labelkey) {
+    $statcard = function ($id, $colorclass, $labelkey, $extraclass = '') {
         $inner = html_writer::div('&mdash;', 'ssv-stat-value ' . $colorclass, ['id' => $id]);
         $inner .= html_writer::div(get_string($labelkey, 'local_softsysvideo'), 'ssv-stat-label');
         return html_writer::div(
             html_writer::div($inner, 'card-body'),
-            'card ssv-stat-card text-center h-100'
+            'card ssv-stat-card text-center h-100' . ($extraclass ? ' ' . $extraclass : '')
         );
     };
+
     $statsrow = html_writer::div(
-        html_writer::div($statcard('ssv-stat-meetings', 'text-primary', 'this_month_meetings'), 'col-6 col-md-3') .
-        html_writer::div($statcard('ssv-stat-hours', 'text-info', 'video_hours'), 'col-6 col-md-3') .
-        html_writer::div($statcard('ssv-stat-participants', 'text-warning', 'total_participants'), 'col-6 col-md-3') .
-        html_writer::div($statcard('ssv-stat-recordings', 'text-success', 'total_recordings'), 'col-6 col-md-3'),
+        html_writer::div($statcard('ssv-stat-meetings', 'text-primary', 'this_month_meetings'), 'col-6 col-md-4') .
+        html_writer::div($statcard('ssv-stat-hours', 'text-info', 'video_hours'), 'col-6 col-md-4') .
+        html_writer::div($statcard('ssv-stat-session-minutes', 'text-primary', 'sessionminutes'), 'col-6 col-md-4') .
+        html_writer::div($statcard('ssv-stat-participants', 'text-warning', 'total_participants'), 'col-6 col-md-4') .
+        html_writer::div($statcard('ssv-stat-recordings', 'text-success', 'total_recordings'), 'col-6 col-md-4') .
+        html_writer::div($statcard('ssv-stat-recording-minutes', 'text-success', 'recordingminutes'), 'col-6 col-md-4'),
         'row g-3 mb-4'
     );
     echo $statsrow;

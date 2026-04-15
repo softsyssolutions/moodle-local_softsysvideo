@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] — 2026-04-15
+
+### Added
+
+- Credit Balance stat card on dashboard (shows tenant credit balance in USD)
+- Low-balance warning: card turns yellow + "Low balance — top up soon" badge when balance < $0.50
+- Session Minutes stat card (minutes of video sessions consumed this calendar month)
+- New fields in `/api/moodle/stats` response: `credit_balance`, `low_balance_warning`, `session_minutes`, `recording_minutes`
+- 4 new lang strings: `creditbalance`, `lowbalancewarning`, `sessionminutes`, `recordingminutes`
+- Spec SDD at `specs/003-moodle-plugin-v2/spec.md` (in api-worker repo)
+
+### Changed
+
+- Dashboard layout: 6 stat cards in 2-column grid (was 4 cards in 4-column grid)
+- `get_stats` external function now returns 9 fields (was 5)
+- Stat card hover now includes subtle upward translation in addition to shadow deepening
+- Stat label style: uppercase, slightly larger letter-spacing for improved readability
+
 ## [0.2.0] — 2026-03-22
 
 ### Added

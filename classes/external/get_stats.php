@@ -59,11 +59,13 @@ class get_stats extends external_api {
 
         $month = $data['this_month'] ?? [];
         return [
-            'meetings'     => (int)($month['meetings'] ?? 0),
-            'total_hours'  => (string)($month['total_hours'] ?? '0m'),
-            'participants' => (int)($month['participants'] ?? 0),
-            'recordings'   => (int)($month['recordings'] ?? 0),
-            'tenant_name'  => $data['tenant_name'] ?? '',
+            'meetings'           => (int)($month['meetings'] ?? 0),
+            'session_minutes'    => (int)($month['session_minutes'] ?? 0),
+            'total_hours'        => (string)($month['total_hours'] ?? '0m'),
+            'participants'       => (int)($month['participants'] ?? 0),
+            'recordings'         => (int)($month['recordings'] ?? 0),
+            'recording_minutes'  => (int)($month['recording_minutes'] ?? 0),
+            'tenant_name'        => (string)($data['tenant_name'] ?? ''),
         ];
     }
 
@@ -73,11 +75,13 @@ class get_stats extends external_api {
      */
     public static function execute_returns(): external_single_structure {
         return new external_single_structure([
-            'meetings'     => new external_value(PARAM_INT, 'Meetings this month'),
-            'total_hours'  => new external_value(PARAM_TEXT, 'Video hours this month'),
-            'participants' => new external_value(PARAM_INT, 'Total participants this month'),
-            'recordings'   => new external_value(PARAM_INT, 'Recordings this month'),
-            'tenant_name'  => new external_value(PARAM_TEXT, 'Tenant name'),
+            'meetings'            => new external_value(PARAM_INT, 'Meetings this month'),
+            'session_minutes'     => new external_value(PARAM_INT, 'Session minutes this month'),
+            'total_hours'         => new external_value(PARAM_TEXT, 'Video hours this month'),
+            'participants'        => new external_value(PARAM_INT, 'Total participants this month'),
+            'recordings'          => new external_value(PARAM_INT, 'Recordings this month'),
+            'recording_minutes'   => new external_value(PARAM_INT, 'Recording minutes this month'),
+            'tenant_name'         => new external_value(PARAM_TEXT, 'Tenant name'),
         ]);
     }
 }
