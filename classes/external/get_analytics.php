@@ -73,7 +73,14 @@ class get_analytics extends external_api {
             }
         }
 
-        return ['chart_data' => $chartdata];
+        $summary = [
+            'total_sessions'           => (int)($data['summary']['total_sessions'] ?? 0),
+            'total_minutes'            => (int)($data['summary']['total_minutes'] ?? 0),
+            'total_recording_minutes'  => (int)($data['summary']['total_recording_minutes'] ?? 0),
+            'recordings_count'         => (int)($data['summary']['recordings_count'] ?? 0),
+        ];
+
+        return ['chart_data' => $chartdata, 'summary' => $summary];
     }
 
     /**
@@ -89,6 +96,12 @@ class get_analytics extends external_api {
                     'minutes'  => new external_value(PARAM_INT, 'Minutes consumed'),
                 ])
             ),
+            'summary' => new external_single_structure([
+                'total_sessions'          => new external_value(PARAM_INT, 'Total sessions in range'),
+                'total_minutes'           => new external_value(PARAM_INT, 'Total session minutes in range'),
+                'total_recording_minutes' => new external_value(PARAM_INT, 'Total recording minutes in range'),
+                'recordings_count'        => new external_value(PARAM_INT, 'Total ready recordings'),
+            ]),
         ]);
     }
 }

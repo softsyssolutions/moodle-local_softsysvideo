@@ -73,6 +73,14 @@ $functions = [
         'ajax'        => true,
         'capabilities' => 'local/softsysvideo:manage',
     ],
+    'local_softsysvideo_get_meeting_participants' => [
+        'classname'   => \local_softsysvideo\external\get_meeting_participants::class,
+        'methodname'  => 'execute',
+        'description' => 'Get participants for a specific meeting.',
+        'type'        => 'read',
+        'ajax'        => true,
+        'capabilities' => 'local/softsysvideo:manage',
+    ],
     'local_softsysvideo_create_ticket' => [
         'classname'   => \local_softsysvideo\external\create_ticket::class,
         'methodname'  => 'execute',
