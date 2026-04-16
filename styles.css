@@ -1,171 +1,571 @@
 /* stylelint-disable color-no-hex */
 /**
- * SoftSys Video plugin styles.
+ * SoftSys Video plugin styles — v2.1 design overhaul.
+ *
+ * Design system: Micro SaaS B2B (light), indigo primary.
+ * Works within Moodle Boost/Clean Bootstrap 4/5 admin shell.
  *
  * @package    local_softsysvideo
  * @copyright  2026 SoftSys Solutions
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/* Brand variables */
+/* ── Design tokens ──────────────────────────────────────────────────────── */
 :root {
-    --ssv-primary: #0d6efd;
-    --ssv-success: #198754;
-    --ssv-info: #0dcaf0;
-    --ssv-warning: #ffc107;
-    --ssv-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    --ssv-border-radius: 0.5rem;
+    --ssv-primary:        #6366f1;
+    --ssv-primary-dark:   #4f46e5;
+    --ssv-primary-light:  #e0e7ff;
+    --ssv-primary-ring:   rgba(99, 102, 241, 0.25);
+
+    --ssv-success:        #059669;
+    --ssv-success-light:  #d1fae5;
+    --ssv-warning:        #d97706;
+    --ssv-warning-light:  #fef3c7;
+    --ssv-danger:         #dc2626;
+    --ssv-danger-light:   #fee2e2;
+    --ssv-info:           #0891b2;
+    --ssv-info-light:     #cffafe;
+
+    --ssv-text:           #1e1b4b;
+    --ssv-text-muted:     #64748b;
+    --ssv-text-xmuted:    #94a3b8;
+
+    --ssv-bg:             #f5f3ff;
+    --ssv-surface:        #ffffff;
+    --ssv-border:         #e0e7ff;
+    --ssv-border-strong:  #c7d2fe;
+
+    --ssv-radius-sm:      0.375rem;
+    --ssv-radius:         0.625rem;
+    --ssv-radius-lg:      0.875rem;
+
+    --ssv-shadow-xs:      0 1px 2px rgba(99, 102, 241, 0.06);
+    --ssv-shadow-sm:      0 1px 4px rgba(99, 102, 241, 0.08), 0 0 0 1px rgba(99, 102, 241, 0.04);
+    --ssv-shadow:         0 4px 12px rgba(99, 102, 241, 0.10), 0 0 0 1px rgba(99, 102, 241, 0.05);
+    --ssv-shadow-lg:      0 8px 24px rgba(99, 102, 241, 0.14), 0 0 0 1px rgba(99, 102, 241, 0.06);
+
+    --ssv-transition:     150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --ssv-transition-md:  250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Plugin navigation tabs */
+/* ── Page wrapper ────────────────────────────────────────────────────────── */
+.container-fluid.py-3 {
+    background: var(--ssv-bg);
+    border-radius: var(--ssv-radius-lg);
+    padding: 1.5rem !important;
+}
+
+/* ── Navigation tabs ────────────────────────────────────────────────────── */
 .ssv-plugin-nav {
-    border-bottom: 2px solid #dee2e6;
-    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--ssv-border);
+    margin-bottom: 1.75rem;
+    gap: 0.25rem;
+    display: flex;
+    flex-wrap: nowrap;
 }
 
 .ssv-plugin-nav .nav-link {
-    color: #495057;
+    color: var(--ssv-text-muted);
     border: none;
     border-bottom: 2px solid transparent;
-    padding: 0.5rem 1rem;
-    font-weight: 500;
+    padding: 0.6rem 1.1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
     margin-bottom: -2px;
-    transition: color 0.15s, border-color 0.15s;
+    border-radius: var(--ssv-radius-sm) var(--ssv-radius-sm) 0 0;
+    transition: color var(--ssv-transition), border-color var(--ssv-transition), background-color var(--ssv-transition);
+    white-space: nowrap;
 }
 
 .ssv-plugin-nav .nav-link:hover {
     color: var(--ssv-primary);
-    border-bottom-color: var(--ssv-primary);
+    border-bottom-color: var(--ssv-border-strong);
+    background-color: var(--ssv-primary-light);
 }
 
 .ssv-plugin-nav .nav-link.active {
     color: var(--ssv-primary);
     border-bottom-color: var(--ssv-primary);
-    background: transparent;
+    background-color: transparent;
 }
 
-/* Stat cards on the dashboard */
-.ssv-stat-card {
-    border: none;
-    border-radius: var(--ssv-border-radius);
-    box-shadow: var(--ssv-card-shadow);
-    transition: box-shadow 0.2s, transform 0.15s;
+/* ── Page header area ────────────────────────────────────────────────────── */
+.ssv-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
 }
 
-.ssv-stat-card:hover {
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.13);
-    transform: translateY(-1px);
-}
-
-.ssv-stat-card .card-body {
-    padding: 1.25rem 1rem;
-}
-
-.ssv-stat-value {
-    font-size: 1.9rem;
+.ssv-page-header h2 {
+    font-size: 1.35rem;
     font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
+    color: var(--ssv-text);
+    margin: 0;
 }
 
-.ssv-stat-label {
-    color: #6c757d;
+/* ── Tenant badge ───────────────────────────────────────────────────────── */
+#ssv-tenant-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     font-size: 0.8rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-top: 0.3rem;
-}
-
-
-/* Tables - Moodle-compatible styling */
-.local-softsysvideo-table thead th {
-    background-color: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
     font-weight: 600;
-    color: #495057;
-    padding: 0.75rem;
-    white-space: nowrap;
-}
-
-.local-softsysvideo-table tbody td {
-    padding: 0.75rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 2rem;
+    background-color: var(--ssv-success-light);
+    color: var(--ssv-success);
+    border: 1px solid rgba(5, 150, 105, 0.2);
+    margin-left: 0.75rem;
     vertical-align: middle;
 }
 
-.local-softsysvideo-table tbody tr:hover {
-    background-color: rgba(0, 0, 0, 0.02);
+/* ── Stat cards ──────────────────────────────────────────────────────────── */
+.ssv-stat-card {
+    border: 1px solid var(--ssv-border);
+    border-radius: var(--ssv-radius);
+    box-shadow: var(--ssv-shadow-sm);
+    background: var(--ssv-surface);
+    transition: box-shadow var(--ssv-transition-md), transform var(--ssv-transition-md), border-color var(--ssv-transition-md);
+    height: 100%;
 }
 
-/* Connection status cards */
-.ssv-connected-card {
-    border-left: 4px solid var(--ssv-success);
-    border-radius: var(--ssv-border-radius);
-    box-shadow: var(--ssv-card-shadow);
+.ssv-stat-card:hover {
+    box-shadow: var(--ssv-shadow);
+    transform: translateY(-2px);
+    border-color: var(--ssv-border-strong);
 }
 
-.ssv-connect-card {
-    border-radius: var(--ssv-border-radius);
-    box-shadow: var(--ssv-card-shadow);
+.ssv-stat-card .card-body {
+    padding: 1.25rem 1.1rem 1rem;
+    position: relative;
 }
 
-/* Filter row styling */
-.ssv-filter-row {
-    background-color: #f8f9fa;
-    border-radius: var(--ssv-border-radius);
-    padding: 1rem;
+.ssv-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--ssv-text);
+}
+
+.ssv-stat-label {
+    color: var(--ssv-text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 0.35rem;
+}
+
+/* Colored stat value accents */
+.ssv-stat-value.text-primary  { color: var(--ssv-primary) !important; }
+.ssv-stat-value.text-success  { color: var(--ssv-success) !important; }
+.ssv-stat-value.text-info     { color: var(--ssv-info) !important; }
+.ssv-stat-value.text-warning  { color: var(--ssv-warning) !important; }
+
+/* ── Analytics KPI row ──────────────────────────────────────────────────── */
+.ssv-kpi-row {
     margin-bottom: 1rem;
 }
 
-.ssv-filter-row label {
-    font-weight: 500;
-    font-size: 0.8rem;
-    color: #6c757d;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
+/* ── Range button group ─────────────────────────────────────────────────── */
+.ssv-range-btn {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.3rem 0.85rem;
+    border-radius: var(--ssv-radius-sm) !important;
+    transition: all var(--ssv-transition);
 }
 
-/* Charts area */
+.ssv-range-btn.btn-primary {
+    background-color: var(--ssv-primary);
+    border-color: var(--ssv-primary);
+    color: #fff;
+}
+
+.ssv-range-btn.btn-outline-secondary {
+    color: var(--ssv-text-muted);
+    border-color: var(--ssv-border-strong);
+    background: var(--ssv-surface);
+}
+
+.ssv-range-btn.btn-outline-secondary:hover {
+    background-color: var(--ssv-primary-light);
+    color: var(--ssv-primary);
+    border-color: var(--ssv-primary);
+}
+
+/* ── Chart cards ─────────────────────────────────────────────────────────── */
 .ssv-chart-card {
-    border: none;
-    border-radius: var(--ssv-border-radius);
-    box-shadow: var(--ssv-card-shadow);
+    border: 1px solid var(--ssv-border);
+    border-radius: var(--ssv-radius);
+    box-shadow: var(--ssv-shadow-sm);
+    background: var(--ssv-surface);
+    transition: box-shadow var(--ssv-transition-md);
+}
+
+.ssv-chart-card:hover {
+    box-shadow: var(--ssv-shadow);
 }
 
 .ssv-chart-card .card-body {
     padding: 1.25rem;
 }
 
-/* Support ticket badges */
-.ssv-badge-new {
+.ssv-chart-card .card-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ssv-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+}
+
+/* ── Data tables ─────────────────────────────────────────────────────────── */
+.local-softsysvideo-table {
+    background: var(--ssv-surface);
+    border-radius: var(--ssv-radius);
+    overflow: hidden;
+    border: 1px solid var(--ssv-border);
+    box-shadow: var(--ssv-shadow-xs);
+    margin-bottom: 0;
+}
+
+.local-softsysvideo-table thead th {
+    background-color: var(--ssv-bg);
+    border-bottom: 2px solid var(--ssv-border-strong);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ssv-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.8rem 1rem;
+    white-space: nowrap;
+}
+
+.local-softsysvideo-table tbody td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+    border-color: var(--ssv-border);
+    color: var(--ssv-text);
+    font-size: 0.875rem;
+}
+
+.local-softsysvideo-table tbody tr {
+    transition: background-color var(--ssv-transition);
+}
+
+.local-softsysvideo-table tbody tr:hover {
+    background-color: var(--ssv-primary-light);
+    cursor: default;
+}
+
+/* ── Filter row ─────────────────────────────────────────────────────────── */
+.ssv-filter-row {
+    background-color: var(--ssv-surface);
+    border: 1px solid var(--ssv-border);
+    border-radius: var(--ssv-radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--ssv-shadow-xs);
+}
+
+.ssv-filter-row label {
+    font-weight: 600;
+    font-size: 0.72rem;
+    color: var(--ssv-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.3rem;
+}
+
+.ssv-filter-row .form-control,
+.ssv-filter-row .custom-select,
+.ssv-filter-row select {
+    border-color: var(--ssv-border-strong);
+    font-size: 0.875rem;
+    border-radius: var(--ssv-radius-sm);
+    transition: border-color var(--ssv-transition), box-shadow var(--ssv-transition);
+}
+
+.ssv-filter-row .form-control:focus,
+.ssv-filter-row .custom-select:focus,
+.ssv-filter-row select:focus {
+    border-color: var(--ssv-primary);
+    box-shadow: 0 0 0 3px var(--ssv-primary-ring);
+    outline: none;
+}
+
+/* ── Buttons — primary override ──────────────────────────────────────────── */
+.btn-primary {
     background-color: var(--ssv-primary);
-    color: #fff;
+    border-color: var(--ssv-primary);
+    font-weight: 600;
+    transition: background-color var(--ssv-transition), box-shadow var(--ssv-transition), transform var(--ssv-transition);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--ssv-primary-dark);
+    border-color: var(--ssv-primary-dark);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+}
+
+.btn-primary:active {
+    transform: scale(0.97);
+}
+
+.btn-outline-secondary {
+    border-color: var(--ssv-border-strong);
+    color: var(--ssv-text-muted);
+    font-weight: 600;
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--ssv-primary-light);
+    color: var(--ssv-primary);
+    border-color: var(--ssv-primary);
+}
+
+.btn-outline-danger {
+    font-weight: 600;
+    transition: all var(--ssv-transition);
+}
+
+/* ── Connection cards (connect.php / settings) ───────────────────────────── */
+.ssv-connected-card {
+    border: 1px solid rgba(5, 150, 105, 0.3);
+    border-left: 4px solid var(--ssv-success);
+    border-radius: var(--ssv-radius);
+    box-shadow: var(--ssv-shadow-sm);
+    background: var(--ssv-surface);
+}
+
+.ssv-connect-card {
+    border: 1px solid var(--ssv-border);
+    border-radius: var(--ssv-radius);
+    box-shadow: var(--ssv-shadow-sm);
+    background: var(--ssv-surface);
+}
+
+/* Connect page — API key input */
+#id_api_key,
+input[name="api_key"] {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    border-color: var(--ssv-border-strong);
+    border-radius: var(--ssv-radius-sm);
+    transition: border-color var(--ssv-transition), box-shadow var(--ssv-transition);
+}
+
+#id_api_key:focus,
+input[name="api_key"]:focus {
+    border-color: var(--ssv-primary);
+    box-shadow: 0 0 0 3px var(--ssv-primary-ring);
+}
+
+/* ── Badge variants ───────────────────────────────────────────────────────── */
+.ssv-badge-new {
+    background-color: var(--ssv-primary-light);
+    color: var(--ssv-primary);
+    border: 1px solid var(--ssv-border-strong);
+    font-weight: 700;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 2rem;
 }
 
 .ssv-badge-in-progress {
-    background-color: var(--ssv-warning);
-    color: #000;
+    background-color: var(--ssv-warning-light);
+    color: var(--ssv-warning);
+    border: 1px solid rgba(217, 119, 6, 0.25);
+    font-weight: 700;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 2rem;
 }
 
 .ssv-badge-answered {
-    background-color: var(--ssv-info);
-    color: #000;
+    background-color: var(--ssv-info-light);
+    color: var(--ssv-info);
+    border: 1px solid rgba(8, 145, 178, 0.25);
+    font-weight: 700;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 2rem;
 }
 
 .ssv-badge-resolved {
-    background-color: var(--ssv-success);
-    color: #fff;
+    background-color: var(--ssv-success-light);
+    color: var(--ssv-success);
+    border: 1px solid rgba(5, 150, 105, 0.25);
+    font-weight: 700;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 2rem;
 }
 
-/* Responsive tweaks */
+/* ── Alerts (error/warning) ──────────────────────────────────────────────── */
+.alert-danger {
+    background-color: var(--ssv-danger-light);
+    border-color: rgba(220, 38, 38, 0.2);
+    color: #991b1b;
+    border-radius: var(--ssv-radius-sm);
+    font-size: 0.875rem;
+}
+
+.alert-warning {
+    background-color: var(--ssv-warning-light);
+    border-color: rgba(217, 119, 6, 0.2);
+    color: #92400e;
+    border-radius: var(--ssv-radius-sm);
+    font-size: 0.875rem;
+}
+
+/* ── Loading spinner area ────────────────────────────────────────────────── */
+.ssv-spinner-container {
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Centered loading icon */
+#ssv-analytics-spinner,
+#ssv-stats-spinner,
+#ssv-detail-spinner,
+#ssv-participants-spinner {
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Balance warning banner ─────────────────────────────────────────────── */
+#ssv-balance-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+    border: 1px solid rgba(217, 119, 6, 0.3);
+    border-left: 4px solid var(--ssv-warning);
+    border-radius: var(--ssv-radius-sm);
+    color: #78350f;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* ── Pagination ───────────────────────────────────────────────────────────── */
+.ssv-pagination {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ssv-pagination button {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.3rem 0.75rem;
+    border-radius: var(--ssv-radius-sm);
+    transition: all var(--ssv-transition);
+}
+
+.ssv-pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ── Search input ────────────────────────────────────────────────────────── */
+#ssv-recordings-search,
+#ssv-meetings-search {
+    border-color: var(--ssv-border-strong);
+    border-radius: var(--ssv-radius-sm);
+    font-size: 0.875rem;
+    transition: border-color var(--ssv-transition), box-shadow var(--ssv-transition);
+}
+
+#ssv-recordings-search:focus,
+#ssv-meetings-search:focus {
+    border-color: var(--ssv-primary);
+    box-shadow: 0 0 0 3px var(--ssv-primary-ring);
+    outline: none;
+}
+
+/* ── Table wrapper (horizontal scroll on mobile) ────────────────────────── */
+.ssv-table-wrapper {
+    border-radius: var(--ssv-radius);
+    overflow: hidden;
+    box-shadow: var(--ssv-shadow-xs);
+    border: 1px solid var(--ssv-border);
+}
+
+/* ── Flex gap fallback (Bootstrap 4 compat) ─────────────────────────────── */
+.ssv-flex-gap > * + * {
+    margin-left: 0.5rem;
+}
+
+/* ── Monospace utility ───────────────────────────────────────────────────── */
+.ssv-monospace {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* ── Ticket message bubble (support_detail) ─────────────────────────────── */
+.ssv-message-bubble {
+    border-radius: var(--ssv-radius);
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    box-shadow: var(--ssv-shadow-xs);
+}
+
+.ssv-message-user {
+    background-color: var(--ssv-primary-light);
+    border: 1px solid var(--ssv-border-strong);
+    color: var(--ssv-text);
+}
+
+.ssv-message-system {
+    background-color: var(--ssv-surface);
+    border: 1px solid var(--ssv-border);
+    color: var(--ssv-text);
+}
+
+.ssv-message-meta {
+    font-size: 0.7rem;
+    color: var(--ssv-text-xmuted);
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.ssv-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--ssv-text-xmuted);
+}
+
+.ssv-empty-state p {
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
+    .container-fluid.py-3 {
+        padding: 1rem !important;
+        border-radius: var(--ssv-radius-sm);
+    }
+
     .ssv-stat-value {
         font-size: 1.5rem;
     }
 
     .ssv-plugin-nav .nav-link {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.875rem;
+        padding: 0.5rem 0.65rem;
+        font-size: 0.8rem;
     }
 
     .ssv-filter-row {
@@ -175,36 +575,20 @@
 
 @media (max-width: 576px) {
     .ssv-plugin-nav {
-        flex-wrap: nowrap;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .ssv-plugin-nav::-webkit-scrollbar {
+        display: none;
     }
 
     .ssv-plugin-nav .nav-item {
         flex-shrink: 0;
     }
-}
 
-/* Monospace font fallback for Bootstrap 4 compatibility */
-.ssv-monospace {
-    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-}
-
-/* Flex gap fallback for Bootstrap 4 compatibility */
-.ssv-flex-gap > * + * {
-    margin-left: 0.5rem;
-}
-
-/* Spinner area */
-.ssv-spinner-container {
-    min-height: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Pagination controls */
-.ssv-pagination button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+    .ssv-stat-value {
+        font-size: 1.35rem;
+    }
 }

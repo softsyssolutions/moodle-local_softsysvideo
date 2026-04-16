@@ -160,7 +160,10 @@ if (data_submitted() && confirm_sesskey()) {
 echo $OUTPUT->header();
 echo html_writer::start_div('container-fluid py-3');
 echo local_softsysvideo_render_navigation('connection');
-echo html_writer::tag('h2', get_string('connection', 'local_softsysvideo'));
+echo html_writer::div(
+    html_writer::tag('h2', get_string('connection', 'local_softsysvideo'), ['class' => 'mb-0']),
+    'ssv-page-header'
+);
 echo html_writer::start_div('', ['style' => 'max-width:700px']);
 
 if ($message) {
@@ -180,7 +183,8 @@ if ($isconnected) {
     $disconnectbtn = html_writer::tag(
         'button',
         get_string('disconnect', 'local_softsysvideo'),
-        ['type' => 'submit', 'class' => 'btn btn-outline-danger', 'onclick' => "return confirm('" . $confirmstr . "')"]
+        ['type' => 'submit', 'class' => 'btn btn-outline-danger', 'data-confirm' => $confirmstr,
+         'onclick' => 'return confirm(this.dataset.confirm)']
     );
     $disconnectform = html_writer::tag(
         'form',
@@ -190,12 +194,18 @@ if ($isconnected) {
         ['method' => 'post', 'action' => '']
     );
     $cardbody = html_writer::div($orgrow . $apirow . $disconnectform, 'card-body');
+    $connectedbadge = html_writer::tag('span', get_string('connected', 'local_softsysvideo'), [
+        'class' => 'badge',
+        'style' => 'background:var(--ssv-success-light);color:var(--ssv-success);'
+            . 'border:1px solid rgba(5,150,105,.2);font-size:.75rem;font-weight:700;'
+            . 'padding:.25rem .6rem;border-radius:2rem;',
+    ]);
     $cardheader = html_writer::div(
-        get_string('connected', 'local_softsysvideo'),
-        'card-header bg-success text-white font-weight-bold'
+        html_writer::tag('strong', get_string('connect_account', 'local_softsysvideo')) . ' ' . $connectedbadge,
+        'card-header'
     );
-    echo html_writer::div($cardheader . $cardbody, 'card border-success mb-4');
-    echo html_writer::tag('h3', get_string('reconnect', 'local_softsysvideo'));
+    echo html_writer::div($cardheader . $cardbody, 'ssv-connected-card card mb-4');
+    echo html_writer::tag('h5', get_string('reconnect', 'local_softsysvideo'), ['class' => 'mb-3']);
 }
 
 // Connect form — single API key field.
@@ -226,7 +236,7 @@ $forminner = $instrp .
     html_writer::div($keyinput . $keyhelp, 'mb-3') .
     $submitbtn;
 $form = html_writer::tag('form', $forminner, ['method' => 'post', 'action' => '']);
-echo html_writer::div(html_writer::div($form, 'card-body'), 'card');
+echo html_writer::div(html_writer::div($form, 'card-body'), 'ssv-connect-card card');
 
 echo html_writer::end_div(); // Close max-width wrapper.
 echo html_writer::end_div(); // Close container-fluid.

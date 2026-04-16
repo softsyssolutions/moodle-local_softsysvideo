@@ -209,12 +209,12 @@ define(['core/ajax'], function(Ajax) {
                 tr.appendChild(tdDur);
 
                 var tdVideo = document.createElement('td');
-                tdVideo.innerHTML = p.video_enabled ? '&#10003;' : '\u2014';
+                tdVideo.textContent = p.video_enabled ? '\u2713' : '\u2014';
                 tdVideo.className = p.video_enabled ? 'text-success' : 'text-muted';
                 tr.appendChild(tdVideo);
 
                 var tdAudio = document.createElement('td');
-                tdAudio.innerHTML = p.audio_enabled ? '&#10003;' : '\u2014';
+                tdAudio.textContent = p.audio_enabled ? '\u2713' : '\u2014';
                 tdAudio.className = p.audio_enabled ? 'text-success' : 'text-muted';
                 tr.appendChild(tdAudio);
 

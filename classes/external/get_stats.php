@@ -50,6 +50,7 @@ class get_stats extends external_api {
      * @return array
      */
     public static function execute(): array {
+        self::validate_parameters(self::execute_parameters(), []);
         $context = \context_system::instance();
         self::validate_context($context);
         require_capability('local/softsysvideo:manage', $context);

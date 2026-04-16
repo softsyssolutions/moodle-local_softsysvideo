@@ -137,6 +137,7 @@ $string['support'] = 'Support';
 $string['support_error'] = 'Failed to send support request. Please contact your administrator.';
 $string['support_sent'] = 'Your support request has been sent.';
 $string['support_tickets'] = 'Support Tickets';
+$string['system_author'] = 'System';
 $string['tenant_name'] = 'Tenant';
 $string['test_connection'] = 'Test connection';
 $string['testing'] = 'Testing...';
