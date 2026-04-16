@@ -47,144 +47,128 @@ if (!$isconnected) {
     redirect(new moodle_url('/local/softsysvideo/connect.php'));
 }
 
-if ($isconnected) {
-    $jsstrings = [
-        'no_tickets' => get_string('no_tickets', 'local_softsysvideo'),
-        'submit_ticket' => get_string('submit_ticket', 'local_softsysvideo'),
-        'submitting' => get_string('loading', 'local_softsysvideo'),
-        'ticket_created' => get_string('ticket_created', 'local_softsysvideo'),
-        'previous' => get_string('previous', 'local_softsysvideo'),
-        'next' => get_string('next', 'local_softsysvideo'),
-    ];
-    $PAGE->requires->js_call_amd('local_softsysvideo/support_list', 'init', [$CFG->wwwroot, $jsstrings]);
-}
+$jsstrings = [
+    'no_tickets' => get_string('no_tickets', 'local_softsysvideo'),
+    'submit_ticket' => get_string('submit_ticket', 'local_softsysvideo'),
+    'submitting' => get_string('loading', 'local_softsysvideo'),
+    'ticket_created' => get_string('ticket_created', 'local_softsysvideo'),
+    'previous' => get_string('previous', 'local_softsysvideo'),
+    'next' => get_string('next', 'local_softsysvideo'),
+];
+$PAGE->requires->js_call_amd('local_softsysvideo/support_list', 'init', [$CFG->wwwroot, $jsstrings]);
 
 echo $OUTPUT->header();
 
 echo html_writer::start_div('container-fluid py-3');
 echo local_softsysvideo_render_navigation('support');
-echo html_writer::tag('h2', get_string('support_tickets', 'local_softsysvideo'));
 
-if (!$isconnected) {
-    echo $OUTPUT->notification(
-        get_string('not_connected', 'local_softsysvideo') . ' ' .
-        html_writer::link(
-            new moodle_url('/local/softsysvideo/connect.php'),
-            get_string('connect_account', 'local_softsysvideo')
-        ),
-        \core\output\notification::NOTIFY_WARNING
-    );
-} else {
-    // Error alert (hidden by default).
-    echo html_writer::div(
-        get_string('request_failed', 'local_softsysvideo'),
-        'alert alert-danger d-none',
-        ['id' => 'ssv-support-error']
-    );
+// Page header.
+echo html_writer::div(
+    html_writer::tag('h2', get_string('support_tickets', 'local_softsysvideo'), ['class' => 'mb-0']) .
+    html_writer::tag('button', get_string('create_ticket', 'local_softsysvideo'), [
+        'id'    => 'ssv-support-create-btn',
+        'class' => 'btn btn-primary btn-sm',
+        'type'  => 'button',
+    ]),
+    'ssv-page-header'
+);
 
-    // Success notification (hidden by default).
-    echo html_writer::div(
-        get_string('ticket_created', 'local_softsysvideo'),
-        'alert alert-success d-none',
-        ['id' => 'ssv-support-success']
-    );
+// Error alert (hidden by default).
+echo html_writer::div(
+    get_string('request_failed', 'local_softsysvideo'),
+    'alert alert-danger d-none',
+    ['id' => 'ssv-support-error']
+);
 
-    // Create Ticket button.
-    echo html_writer::tag(
-        'button',
-        get_string('create_ticket', 'local_softsysvideo'),
-        [
-            'id' => 'ssv-support-create-btn',
-            'class' => 'btn btn-primary mb-3',
-            'type' => 'button',
-        ]
-    );
+// Success notification (hidden by default).
+echo html_writer::div(
+    get_string('ticket_created', 'local_softsysvideo'),
+    'alert alert-success d-none',
+    ['id' => 'ssv-support-success']
+);
 
-    // Create ticket form (hidden by default).
-    $subjectlabel = html_writer::tag(
-        'label',
-        get_string('ticket_subject', 'local_softsysvideo'),
-        ['for' => 'ssv-ticket-subject', 'class' => 'form-label']
-    );
-    $subjectinput = html_writer::empty_tag('input', [
-        'type' => 'text',
-        'id' => 'ssv-ticket-subject',
-        'name' => 'subject',
-        'class' => 'form-control mb-2',
-        'required' => 'required',
-        'maxlength' => '255',
-    ]);
+// Create ticket form (hidden by default).
+$subjectlabel = html_writer::tag(
+    'label',
+    get_string('ticket_subject', 'local_softsysvideo'),
+    ['for' => 'ssv-ticket-subject', 'class' => 'form-label']
+);
+$subjectinput = html_writer::empty_tag('input', [
+    'type'      => 'text',
+    'id'        => 'ssv-ticket-subject',
+    'name'      => 'subject',
+    'class'     => 'form-control mb-3',
+    'required'  => 'required',
+    'maxlength' => '255',
+]);
+$desclabel = html_writer::tag(
+    'label',
+    get_string('ticket_description', 'local_softsysvideo'),
+    ['for' => 'ssv-ticket-description', 'class' => 'form-label']
+);
+$desctextarea = html_writer::tag('textarea', '', [
+    'id'       => 'ssv-ticket-description',
+    'name'     => 'description',
+    'class'    => 'form-control mb-3',
+    'rows'     => '5',
+    'required' => 'required',
+]);
+$courseidlabel = html_writer::tag(
+    'label',
+    get_string('ticket_course_id', 'local_softsysvideo'),
+    ['for' => 'ssv-ticket-course-id', 'class' => 'form-label']
+);
+$courseidinput = html_writer::empty_tag('input', [
+    'type'  => 'text',
+    'id'    => 'ssv-ticket-course-id',
+    'name'  => 'course_id',
+    'class' => 'form-control mb-4',
+]);
+$submitbtn = html_writer::tag(
+    'button',
+    get_string('submit_ticket', 'local_softsysvideo'),
+    ['type' => 'button', 'id' => 'ssv-ticket-submit', 'class' => 'btn btn-primary me-2']
+);
+$cancelbtn = html_writer::tag(
+    'button',
+    get_string('cancel', 'core'),
+    ['type' => 'button', 'id' => 'ssv-ticket-cancel', 'class' => 'btn btn-outline-secondary']
+);
+$forminner = $subjectlabel . $subjectinput .
+    $desclabel . $desctextarea .
+    $courseidlabel . $courseidinput .
+    $submitbtn . $cancelbtn;
+echo html_writer::div(
+    html_writer::div($forminner, 'card-body'),
+    'ssv-connect-card card mb-4 d-none',
+    ['id' => 'ssv-support-form']
+);
 
-    $desclabel = html_writer::tag(
-        'label',
-        get_string('ticket_description', 'local_softsysvideo'),
-        ['for' => 'ssv-ticket-description', 'class' => 'form-label']
-    );
-    $desctextarea = html_writer::tag('textarea', '', [
-        'id' => 'ssv-ticket-description',
-        'name' => 'description',
-        'class' => 'form-control mb-2',
-        'rows' => '5',
-        'required' => 'required',
-    ]);
+// Spinner.
+echo html_writer::div(
+    $OUTPUT->pix_icon('i/loading', '', 'moodle', ['class' => 'icon-lg']),
+    'text-center py-3',
+    ['id' => 'ssv-support-spinner']
+);
 
-    $courseidlabel = html_writer::tag(
-        'label',
-        get_string('ticket_course_id', 'local_softsysvideo'),
-        ['for' => 'ssv-ticket-course-id', 'class' => 'form-label']
-    );
-    $courseidinput = html_writer::empty_tag('input', [
-        'type' => 'text',
-        'id' => 'ssv-ticket-course-id',
-        'name' => 'course_id',
-        'class' => 'form-control mb-3',
-    ]);
-
-    $submitbtn = html_writer::tag(
-        'button',
-        get_string('submit_ticket', 'local_softsysvideo'),
-        ['type' => 'button', 'id' => 'ssv-ticket-submit', 'class' => 'btn btn-success me-2']
-    );
-    $cancelbtn = html_writer::tag(
-        'button',
-        get_string('cancel', 'core'),
-        ['type' => 'button', 'id' => 'ssv-ticket-cancel', 'class' => 'btn btn-outline-secondary']
-    );
-
-    $forminner = $subjectlabel . $subjectinput . $desclabel . $desctextarea .
-        $courseidlabel . $courseidinput . $submitbtn . $cancelbtn;
-    echo html_writer::div(
-        html_writer::div($forminner, 'card-body'),
-        'card mb-3 d-none',
-        ['id' => 'ssv-support-form']
-    );
-
-    // Spinner (Moodle native).
-    echo html_writer::div(
-        $OUTPUT->pix_icon('i/loading', '', 'moodle', ['class' => 'icon-lg']),
-        'text-center py-3',
-        ['id' => 'ssv-support-spinner']
-    );
-
-    // Tickets table (hidden until data loads).
-    $th  = html_writer::tag('th', get_string('ticket_subject', 'local_softsysvideo'));
-    $th .= html_writer::tag('th', get_string('ticket_status', 'local_softsysvideo'));
-    $th .= html_writer::tag('th', get_string('ticket_priority', 'local_softsysvideo'));
-    $th .= html_writer::tag('th', get_string('ticket_date', 'local_softsysvideo'));
-    $thead = html_writer::tag('thead', html_writer::tag('tr', $th));
-    $tbody = html_writer::tag('tbody', '', ['id' => 'ssv-support-tbody']);
-    $table = html_writer::tag('table', $thead . $tbody, [
-        'class' => 'generaltable table table-striped local-softsysvideo-table',
-    ]);
-    $tablehtml = html_writer::div($table, 'table-responsive');
-    $counthtml = html_writer::tag('p', '', ['class' => 'text-muted small', 'id' => 'ssv-support-count']);
-    $pagination = html_writer::div('', 'd-flex align-items-center mt-2 ssv-flex-gap', ['id' => 'ssv-support-pagination']);
-    echo html_writer::div(
-        $tablehtml . $counthtml . $pagination,
-        'd-none',
-        ['id' => 'ssv-support-container']
-    );
-}
+// Tickets table (hidden until data loads).
+$th  = html_writer::tag('th', get_string('ticket_subject', 'local_softsysvideo'));
+$th .= html_writer::tag('th', get_string('ticket_status', 'local_softsysvideo'));
+$th .= html_writer::tag('th', get_string('ticket_priority', 'local_softsysvideo'));
+$th .= html_writer::tag('th', get_string('ticket_date', 'local_softsysvideo'));
+$thead = html_writer::tag('thead', html_writer::tag('tr', $th));
+$tbody = html_writer::tag('tbody', '', ['id' => 'ssv-support-tbody']);
+$table = html_writer::tag('table', $thead . $tbody, [
+    'class' => 'generaltable table local-softsysvideo-table',
+]);
+$tablehtml = html_writer::div($table, 'ssv-table-wrapper');
+$counthtml = html_writer::tag('p', '', ['class' => 'text-muted small mt-2', 'id' => 'ssv-support-count']);
+$paginationhtml = html_writer::div('', 'd-flex align-items-center mt-2 ssv-flex-gap', ['id' => 'ssv-support-pagination']);
+echo html_writer::div(
+    $tablehtml . $counthtml . $paginationhtml,
+    'd-none',
+    ['id' => 'ssv-support-container']
+);
 
 echo html_writer::end_div();
 echo $OUTPUT->footer();

@@ -121,6 +121,7 @@ class get_meetings extends external_api {
         if (!empty($data['meetings']) && is_array($data['meetings'])) {
             foreach ($data['meetings'] as $m) {
                 $meetings[] = [
+                    'meeting_id'        => $m['meeting_id'] ?? $m['id'] ?? '',
                     'name'              => $m['name'] ?? '',
                     'started_at'        => (int)($m['started_at'] ?? 0),
                     'duration_seconds'  => (int)($m['duration_seconds'] ?? 0),
@@ -144,6 +145,7 @@ class get_meetings extends external_api {
         return new external_single_structure([
             'meetings' => new external_multiple_structure(
                 new external_single_structure([
+                    'meeting_id'        => new external_value(PARAM_TEXT, 'Meeting ID for participant lookup'),
                     'name'              => new external_value(PARAM_TEXT, 'Meeting name'),
                     'started_at'        => new external_value(PARAM_INT, 'Start timestamp'),
                     'duration_seconds'  => new external_value(PARAM_INT, 'Duration in seconds'),

@@ -155,6 +155,7 @@ final class plugin_test extends \advanced_testcase {
             'local_softsysvideo_get_analytics',
             'local_softsysvideo_get_recordings',
             'local_softsysvideo_get_meetings',
+            'local_softsysvideo_get_meeting_participants',
             'local_softsysvideo_get_tickets',
             'local_softsysvideo_get_ticket_detail',
             'local_softsysvideo_create_ticket',

@@ -48,14 +48,16 @@ define(['core/ajax'], function(Ajax) {
                 setText('ssv-stat-recordings', data.recordings);
 
                 // Consumption data (v2).
-                setText('ssv-stat-session-minutes', data.session_minutes !== undefined ? data.session_minutes + ' min' : '\u2014');
-                setText('ssv-stat-recording-minutes', data.recording_minutes !== undefined ? data.recording_minutes + ' min' : '\u2014');
+                var sesMin = data.session_minutes !== undefined ? data.session_minutes + ' min' : '\u2014';
+                var recMin = data.recording_minutes !== undefined ? data.recording_minutes + ' min' : '\u2014';
+                setText('ssv-stat-session-minutes', sesMin);
+                setText('ssv-stat-recording-minutes', recMin);
 
                 // Tenant name badge.
                 if (data.tenant_name) {
                     var tenantEl = document.getElementById('ssv-tenant-name');
                     if (tenantEl) {
-                        tenantEl.innerHTML = 'Connected &mdash; ' + data.tenant_name;
+                        tenantEl.textContent = 'Connected \u2014 ' + data.tenant_name;
                     }
                 }
 
