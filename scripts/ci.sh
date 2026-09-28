@@ -63,7 +63,10 @@ Usage: scripts/ci.sh [command]
 
   full (default)   Start Postgres (Docker), install Moodle + this plugin if
                     needed, then run the moodle-plugin-ci gate.
-  stop              Stop the Postgres container only.
+  stop              Stop the Postgres container (its data volume, and the
+                    cached Moodle install in MOODLE_CI_WORKDIR, both survive
+                    this — use MOODLE_CI_CLEAN=1 or `docker compose ... down -v`
+                    for a truly clean slate).
 
 Environment (optional):
   MOODLE_BRANCH       Default: MOODLE_405_STABLE (also valid: MOODLE_501_STABLE,
@@ -125,6 +128,14 @@ ensure_plugin_ci() {
     export PATH="$PLUGIN_CI_HOME/bin:$PLUGIN_CI_HOME/vendor/bin:$PATH"
     return 0
   fi
+  # A previous run that was interrupted mid-install (Ctrl-C, network drop) can
+  # leave $PLUGIN_CI_HOME populated but without bin/moodle-plugin-ci. composer
+  # create-project refuses to target a non-empty directory, so a stale partial
+  # install would fail forever instead of just reinstalling.
+  if [[ -e "$PLUGIN_CI_HOME" ]]; then
+    step "Removing incomplete moodle-plugin-ci install at $PLUGIN_CI_HOME"
+    rm -rf "$PLUGIN_CI_HOME"
+  fi
   step "Installing moodle-plugin-ci (one-time, cached in $PLUGIN_CI_HOME)"
   mkdir -p "$(dirname "$PLUGIN_CI_HOME")"
   composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci "$PLUGIN_CI_HOME" ^4
@@ -149,16 +160,23 @@ run_full() {
     sudo locale-gen en_AU.UTF-8 2>/dev/null || true
   fi
 
+  # The cached Moodle install in $MOODLE_WORKDIR and the Postgres data volume
+  # must be wiped together: the workdir's config.php names a database that
+  # only exists inside that volume, and moodle-plugin-ci's installer errors
+  # out trying to CREATE DATABASE one that's already there from a previous
+  # run. So MOODLE_CI_CLEAN=1 clears both, never just one.
+  if [[ "${MOODLE_CI_CLEAN:-0}" == "1" ]]; then
+    step "MOODLE_CI_CLEAN=1: removing $MOODLE_WORKDIR and the Postgres data volume"
+    rm -rf "$MOODLE_WORKDIR"
+    "${COMPOSE[@]}" down -v 2>/dev/null || true
+  fi
+
   step "docker: Postgres on host port $PG_PORT ($MOODLE_BRANCH)"
   "${COMPOSE[@]}" up -d
   wait_for_pg
 
   ensure_plugin_ci
 
-  if [[ "${MOODLE_CI_CLEAN:-0}" == "1" ]]; then
-    step "MOODLE_CI_CLEAN=1: removing $MOODLE_WORKDIR"
-    rm -rf "$MOODLE_WORKDIR"
-  fi
   mkdir -p "$MOODLE_WORKDIR"
 
   if [[ ! -f "$MOODLE_WORKDIR/moodle/config.php" ]]; then

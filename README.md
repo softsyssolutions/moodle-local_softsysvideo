@@ -58,6 +58,11 @@ instead of the old workflow's full 10-cell matrix — see the comment at the top
 of `scripts/ci.sh` for what that narrows and why, and for the one check
 (Behat) it does not run yet.
 
+Unlike the deleted workflow (which ran every step regardless of earlier
+failures via `if: !cancelled()`), `scripts/ci.sh` stops at the first blocking
+failure (`set -euo pipefail`) — phpmd and grunt are the two exceptions, kept
+non-fatal to match the old `continue-on-error: true` on those two steps.
+
 Enable the pre-push gate once per clone:
 
 ```bash
