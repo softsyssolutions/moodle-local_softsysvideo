@@ -1,0 +1,27 @@
+# Postgres for the local Moodle Plugin CI gate (scripts/ci.sh).
+# Host port 5433 avoids clashing with any Postgres already running locally.
+#
+# The named volume matters: scripts/ci.sh caches the installed Moodle site
+# (including its DB name/creds) across runs in $MOODLE_CI_WORKDIR and reuses
+# it rather than reinstalling every time. Without a persistent volume,
+# `scripts/ci.sh stop` (docker compose down) throws away the "moodle" and
+# "phpu_..." databases along with the container, so the next run would find a
+# cached Moodle install pointed at a database that no longer exists.
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "${MOODLE_CI_PG_PORT:-5433}:5432"
+    volumes:
+      - moodle-ci-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  moodle-ci-pgdata:
