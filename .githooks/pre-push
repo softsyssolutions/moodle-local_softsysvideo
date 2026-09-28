@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Runs the local CI gate before a push leaves the machine. This repo has no
+# GitHub Actions; this hook and `scripts/ci.sh` are the gate.
+# Enable once per clone: bash scripts/install-hooks.sh
+set -euo pipefail
+
+# Deleting a remote branch pushes nothing to test.
+pushes_commits=0
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
+  [ "$local_sha" != "0000000000000000000000000000000000000000" ] && pushes_commits=1
+done
+[ "$pushes_commits" -eq 1 ] || exit 0
+
+exec bash "$(git rev-parse --show-toplevel)/scripts/ci.sh"
